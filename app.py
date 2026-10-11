@@ -160,12 +160,22 @@ def reseller_data():
         "keys": [dict(k) for k in keys]
     })
 
-# Key Generation (Without Rupee / Wallet Deduction)
+# KEY GENERATION (Wallet Balance & Cost Deduction)
 @app.route('/reseller/generate_key', methods=['POST'])
 def reseller_generate_key():
     user = request.form.get('username', '').strip().lower()
     key = request.form.get('key', '').strip().upper()
     plan = request.form.get('plan', '1d')
+    cost = float(request.form.get('cost', 40.0))
+
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT balance FROM resellers WHERE username = ?", (user,))
+    res = cursor.fetchone()
+
+    if not res or res['balance'] < cost:
+        conn.close()
+        return jsonify({"success": False, "msg": "Balance kam hai! Wallet recharge karein."}), 400
 
     now = int(time.time() * 1000)
     if plan == '1h':
@@ -174,18 +184,11 @@ def reseller_generate_key():
     elif plan == '1d':
         exp = now + (24 * 3600 * 1000)
         plan_name = "1 Day"
-    elif plan == '7d':
-        exp = now + (7 * 24 * 3600 * 1000)
-        plan_name = "7 Days"
-    elif plan == '30d' or plan == '1m':
-        exp = now + (30 * 24 * 3600 * 1000)
-        plan_name = "30 Days"
     else:
-        exp = 0
-        plan_name = "Lifetime"
+        exp = now + (30 * 24 * 3600 * 1000)
+        plan_name = "1 Month"
 
-    conn = get_db()
-    cursor = conn.cursor()
+    cursor.execute("UPDATE resellers SET balance = balance - ? WHERE username = ?", (cost, user))
     cursor.execute("""
         INSERT INTO keys (key, status, reseller, plan, expiry_timestamp) 
         VALUES (?, 'unused', ?, ?, ?)
@@ -193,9 +196,9 @@ def reseller_generate_key():
     conn.commit()
     conn.close()
 
-    return jsonify({"success": True, "key": key})
+    return jsonify({"success": True, "key": key, "cost": cost})
 
-# Key Edit (Status / Plan / HWID Reset)
+# EDIT KEY
 @app.route('/reseller/edit_key', methods=['POST'])
 def reseller_edit_key():
     user = request.form.get('username', '').strip().lower()
@@ -224,15 +227,9 @@ def reseller_edit_key():
         elif plan == '1d':
             exp = now + (24 * 3600 * 1000)
             plan_name = "1 Day"
-        elif plan == '7d':
-            exp = now + (7 * 24 * 3600 * 1000)
-            plan_name = "7 Days"
-        elif plan == '30d' or plan == '1m':
+        elif plan == '1m':
             exp = now + (30 * 24 * 3600 * 1000)
-            plan_name = "30 Days"
-        elif plan == 'lifetime':
-            exp = 0
-            plan_name = "Lifetime"
+            plan_name = "1 Month"
 
     new_status = status if status else row['status']
     new_hwid = "" if reset_hwid else row['hwid']
@@ -247,7 +244,7 @@ def reseller_edit_key():
 
     return jsonify({"success": True, "msg": "Key successfully update ho gayi!"})
 
-# Key Delete
+# DELETE KEY
 @app.route('/reseller/delete_key', methods=['POST'])
 def reseller_delete_key():
     user = request.form.get('username', '').strip().lower()
