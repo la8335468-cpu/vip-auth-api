@@ -57,7 +57,7 @@ def admin_page():
     return "Error: admin.html file missing in repo", 404
 
 
-# --- MASTER ADMIN APIS (NO PASSWORD REQUIRED) ---
+# --- MASTER ADMIN APIS ---
 @app.route('/admin/create_reseller', methods=['POST'])
 def create_reseller():
     user = request.form.get('username', '').strip().lower()
@@ -160,21 +160,12 @@ def reseller_data():
         "keys": [dict(k) for k in keys]
     })
 
+# KEY GENERATION (Without Rupee / Balance Check)
 @app.route('/reseller/generate_key', methods=['POST'])
 def reseller_generate_key():
     user = request.form.get('username', '').strip().lower()
     key = request.form.get('key', '').strip().upper()
     plan = request.form.get('plan', '1d')
-    cost = float(request.form.get('cost', 40.0))
-
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("SELECT balance FROM resellers WHERE username = ?", (user,))
-    res = cursor.fetchone()
-
-    if not res or res['balance'] < cost:
-        conn.close()
-        return jsonify({"success": False, "msg": "Balance kam hai! Wallet recharge karein."}), 400
 
     now = int(time.time() * 1000)
     if plan == '1h':
@@ -183,11 +174,18 @@ def reseller_generate_key():
     elif plan == '1d':
         exp = now + (24 * 3600 * 1000)
         plan_name = "1 Day"
-    else:
+    elif plan == '7d':
+        exp = now + (7 * 24 * 3600 * 1000)
+        plan_name = "7 Days"
+    elif plan == '30d' or plan == '1m':
         exp = now + (30 * 24 * 3600 * 1000)
-        plan_name = "1 Month"
+        plan_name = "30 Days"
+    else:
+        exp = 0
+        plan_name = "Lifetime"
 
-    cursor.execute("UPDATE resellers SET balance = balance - ? WHERE username = ?", (cost, user))
+    conn = get_db()
+    cursor = conn.cursor()
     cursor.execute("""
         INSERT INTO keys (key, status, reseller, plan, expiry_timestamp) 
         VALUES (?, 'unused', ?, ?, ?)
@@ -195,7 +193,73 @@ def reseller_generate_key():
     conn.commit()
     conn.close()
 
-    return jsonify({"success": True, "key": key, "cost": cost})
+    return jsonify({"success": True, "key": key})
+
+# EDIT KEY (Plan Change / Reset HWID / Change Status)
+@app.route('/reseller/edit_key', methods=['POST'])
+def reseller_edit_key():
+    user = request.form.get('username', '').strip().lower()
+    key = request.form.get('key', '').strip().upper()
+    status = request.form.get('status', '').strip()
+    plan = request.form.get('plan', '').strip()
+    reset_hwid = request.form.get('reset_hwid', 'false').lower() == 'true'
+
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM keys WHERE key = ? AND reseller = ?", (key, user))
+    row = cursor.fetchone()
+
+    if not row:
+        conn.close()
+        return jsonify({"success": False, "msg": "Key nahi mili!"}), 404
+
+    now = int(time.time() * 1000)
+    exp = row['expiry_timestamp']
+    plan_name = row['plan']
+
+    if plan:
+        if plan == '1h':
+            exp = now + (3600 * 1000)
+            plan_name = "1 Hour"
+        elif plan == '1d':
+            exp = now + (24 * 3600 * 1000)
+            plan_name = "1 Day"
+        elif plan == '7d':
+            exp = now + (7 * 24 * 3600 * 1000)
+            plan_name = "7 Days"
+        elif plan == '30d' or plan == '1m':
+            exp = now + (30 * 24 * 3600 * 1000)
+            plan_name = "30 Days"
+        elif plan == 'lifetime':
+            exp = 0
+            plan_name = "Lifetime"
+
+    new_status = status if status else row['status']
+    new_hwid = "" if reset_hwid else row['hwid']
+
+    cursor.execute("""
+        UPDATE keys 
+        SET plan = ?, expiry_timestamp = ?, status = ?, hwid = ?
+        WHERE key = ? AND reseller = ?
+    """, (plan_name, exp, new_status, new_hwid, key, user))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"success": True, "msg": "Key successfully update ho gayi!"})
+
+# DELETE KEY
+@app.route('/reseller/delete_key', methods=['POST'])
+def reseller_delete_key():
+    user = request.form.get('username', '').strip().lower()
+    key = request.form.get('key', '').strip().upper()
+
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM keys WHERE key = ? AND reseller = ?", (key, user))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"success": True, "msg": "Key permanently delete ho gayi!"})
 
 
 # --- TARGET ANDROID APP VERIFY (/verify) ---
@@ -244,3 +308,4 @@ def verify():
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 8000))
     app.run(host='0.0.0.0', port=port)
+.
