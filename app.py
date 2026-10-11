@@ -5,12 +5,11 @@ from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)  # Cross-Origin resource sharing enable karta hai
+CORS(app)
 
-ADMIN_PASS = "admin123"  # Master Admin Panel ka Password (ise aap badal bhi sakte hain)
 DB_PATH = "database.db"
 
-# --- DATABASE CONNECTION & INIT ---
+# --- DATABASE INIT ---
 def get_db():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -19,7 +18,6 @@ def get_db():
 def init_db():
     conn = get_db()
     cursor = conn.cursor()
-    # 1. Resellers Table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS resellers (
             username TEXT PRIMARY KEY,
@@ -29,7 +27,6 @@ def init_db():
             status TEXT DEFAULT 'active'
         )
     """)
-    # 2. License Keys Table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS keys (
             key TEXT PRIMARY KEY,
@@ -45,41 +42,22 @@ def init_db():
 
 init_db()
 
-# =======================================================
-# 1-LINE WEBSITE ROUTES (Browser Mein Direct Kholne Ke Liye)
-# =======================================================
-
+# --- WEB PAGE ROUTES ---
 @app.route('/')
-def home():
-    # Direct main link open karne par Reseller panel par redirect karega
-    if os.path.exists('seller.html'):
-        return send_file('seller.html')
-    return jsonify({"status": "Online", "service": "VIP Auth Server"})
-
 @app.route('/seller')
 def seller_page():
     if os.path.exists('seller.html'):
         return send_file('seller.html')
-    return "Error: seller.html file nahi mili! Repo mein check karein.", 404
+    return "Error: seller.html file missing in repo", 404
 
 @app.route('/admin')
 def admin_page():
     if os.path.exists('admin.html'):
         return send_file('admin.html')
-    return "Error: admin.html file nahi mili! Repo mein check karein.", 404
+    return "Error: admin.html file missing in repo", 404
 
 
-# =======================================================
-# MASTER ADMIN API ROUTES
-# =======================================================
-
-@app.route('/admin/login', methods=['POST'])
-def admin_login():
-    pwd = request.form.get('password', '')
-    if pwd == ADMIN_PASS:
-        return jsonify({"success": True})
-    return jsonify({"success": False, "msg": "Invalid Admin Password"}), 401
-
+# --- MASTER ADMIN APIS (NO PASSWORD REQUIRED) ---
 @app.route('/admin/create_reseller', methods=['POST'])
 def create_reseller():
     user = request.form.get('username', '').strip().lower()
@@ -109,7 +87,7 @@ def create_reseller():
 def get_resellers():
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT username, balance, expiry_timestamp, status FROM resellers")
+    cursor.execute("SELECT username, password, balance, expiry_timestamp, status FROM resellers")
     rows = cursor.fetchall()
     conn.close()
     return jsonify([dict(r) for r in rows])
@@ -136,10 +114,7 @@ def delete_reseller():
     return jsonify({"success": True})
 
 
-# =======================================================
-# RESELLER PANEL API ROUTES
-# =======================================================
-
+# --- RESELLER PANEL APIS ---
 @app.route('/reseller/login', methods=['POST'])
 def reseller_login():
     user = request.form.get('username', '').strip().lower()
@@ -181,6 +156,7 @@ def reseller_data():
     return jsonify({
         "success": True,
         "balance": reseller['balance'],
+        "expiry_timestamp": reseller['expiry_timestamp'],
         "keys": [dict(k) for k in keys]
     })
 
@@ -200,7 +176,6 @@ def reseller_generate_key():
         conn.close()
         return jsonify({"success": False, "msg": "Balance kam hai! Wallet recharge karein."}), 400
 
-    # Calculate Expiry
     now = int(time.time() * 1000)
     if plan == '1h':
         exp = now + (3600 * 1000)
@@ -223,10 +198,7 @@ def reseller_generate_key():
     return jsonify({"success": True, "key": key, "cost": cost})
 
 
-# =======================================================
-# TARGET ANDROID APP VERIFICATION ROUTE (/verify)
-# =======================================================
-
+# --- TARGET ANDROID APP VERIFY (/verify) ---
 @app.route('/verify', methods=['POST'])
 def verify():
     key = request.form.get('key', '').strip().upper()
@@ -245,26 +217,22 @@ def verify():
         return jsonify({"status": False, "msg": "INVALID LICENSE KEY"})
 
     now = int(time.time() * 1000)
-    # 1. Expiry Check
     if row['expiry_timestamp'] > 0 and now > row['expiry_timestamp']:
         cursor.execute("UPDATE keys SET status = 'expired' WHERE key = ?", (key,))
         conn.commit()
         conn.close()
         return jsonify({"status": False, "msg": "KEY EXPIRED"})
 
-    # 2. Frozen/Blocked Check
     if row['status'] == 'frozen':
         conn.close()
         return jsonify({"status": False, "msg": "KEY IS FROZEN"})
 
-    # 3. First time login (Auto-bind HWID)
     if not row['hwid']:
         cursor.execute("UPDATE keys SET hwid = ?, status = 'active' WHERE key = ?", (hwid, key))
         conn.commit()
         conn.close()
         return jsonify({"status": True, "msg": "DEVICE BOUND & ACCESS GRANTED"})
 
-    # 4. Device HWID Match Check
     if row['hwid'].lower() == hwid:
         conn.close()
         return jsonify({"status": True, "msg": "LOGIN SUCCESSFUL"})
@@ -274,6 +242,5 @@ def verify():
 
 
 if __name__ == '__main__':
-    # Local run / Render port
     port = int(os.environ.get("PORT", 8000))
     app.run(host='0.0.0.0', port=port)
