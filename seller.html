@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Seller Panel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      background: #0b0c16;
+      color: #e2e8f0;
+      min-height: 100vh;
+    }
+
+    /* 1. LOGIN SCREEN */
+    .login-container {
+      max-width: 380px;
+      margin: 90px auto 0;
+      padding: 24px;
+      background: #141727;
+      border: 1px solid #232845;
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    }
+    .login-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: #6366f1;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    /* 2. DASHBOARD */
+    .app-wrapper {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 16px;
+      padding-bottom: 90px;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+    }
+    .header-left h1 {
+      font-size: 20px;
+      font-weight: 800;
+      color: #6366f1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .header-left .time-text {
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .user-pill {
+      background: #17192a;
+      border: 1px solid #282c47;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-logout {
+      background: transparent;
+      border: 1px solid #333857;
+      color: #94a3b8;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+    .btn-logout:hover {
+      border-color: #ef4444;
+      color: #ef4444;
+    }
+
+    /* 6 Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+    .stat-card {
+      background: #141727;
+      border: 1px solid #1f233d;
+      border-radius: 14px;
+      padding: 16px 12px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+    .stat-val {
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+    .stat-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      color: #94a3b8;
+      margin-top: 4px;
+      text-transform: uppercase;
+    }
+
+    .c-blue { color: #3b82f6; }
+    .c-purple { color: #a855f7; }
+    .c-green { color: #10b981; }
+    .c-red { color: #ef4444; }
+    .c-amber { color: #f59e0b; }
+    .c-slate { color: #94a3b8; }
+
+    /* Section Title */
+    .section-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    /* App Box */
+    .app-card {
+      background: #141727;
+      border: 1px solid #232845;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+    }
+    .app-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .app-name {
+      font-size: 15px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .app-package {
+      font-size: 11px;
+      color: #818ba0;
+      margin-top: 2px;
+    }
+
+    /* Generate Key Green Button */
+    .btn-generate {
+      width: 100%;
+      background: #16a34a;
+      color: #ffffff;
+      border: none;
+      padding: 12px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .btn-generate:hover {
+      background: #22c55e;
+      box-shadow: 0 4px 14px rgba(34, 197, 94, 0.35);
+    }
+
+    /* Rates */
+    .rates-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .rate-box {
+      background: #0d0f1b;
+      border: 1px solid #1c2035;
+      border-radius: 10px;
+      padding: 10px 6px;
+      text-align: center;
+    }
+    .rate-header {
+      font-size: 9px;
+      font-weight: 700;
+      color: #94a3b8;
+      letter-spacing: 0.5px;
+    }
+    .rate-price {
+      font-size: 13px;
+      font-weight: 800;
+      color: #facc15;
+      margin: 3px 0 1px;
+    }
+    .rate-period {
+      font-size: 9px;
+      color: #64748b;
+    }
+
+    /* Inputs */
+    label.inp-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #94a3b8;
+      display: block;
+      margin-bottom: 5px;
+    }
+    input.inp-field {
+      width: 100%;
+      background: #0d0f1c;
+      border: 1px solid #232742;
+      border-radius: 9px;
+      padding: 11px 12px;
+      color: #fff;
+      font-size: 13px;
+      outline: none;
+      margin-bottom: 14px;
+    }
+
+    /* Bottom Navigation */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #101221;
+      border-top: 1px solid #1f233d;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: center;
+      z-index: 100;
+    }
+    .nav-container {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #94a3b8;
+      background: transparent;
+      border: none;
+      padding: 8px 22px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .nav-item.active {
+      background: #3b82f6;
+      color: #ffffff;
+      box-shadow: 0 2px 10px rgba(59, 130, 246, 0.4);
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(4px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+      z-index: 999;
+    }
+    .modal-card {
+      background: #141727;
+      border: 1px solid #282d4d;
+      border-radius: 18px;
+      width: 100%;
+      max-width: 420px;
+      padding: 22px;
+    }
+    .plan-selector {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .plan-btn {
+      background: #0d0f1c;
+      border: 1px solid #232742;
+      color: #cbd5e1;
+      padding: 8px 4px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+    }
+    .plan-btn.selected {
+      background: #1e293b;
+      border-color: #3b82f6;
+      color: #38bdf8;
+    }
+
+    /* Keys card */
+    .key-card {
+      background: #141727;
+      border: 1px solid #1f233d;
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+    .key-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .badge {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 999px;
+      text-transform: uppercase;
+    }
+    .badge-active { background: #064e3b; color: #34d399; }
+    .badge-unused { background: #451a03; color: #fbbf24; }
+    .badge-frozen { background: #1e293b; color: #94a3b8; }
+    .badge-expired { background: #4c0519; color: #fb7185; }
+  </style>
+</head>
+<body>
+
+<!-- 1. RESELLER LOGIN VIEW -->
+<div class="login-container" id="loginBox">
+  <div class="login-title">SELLER LOGIN</div>
+  
+  <label class="inp-label">RESELLER USERNAME</label>
+  <input type="text" id="loginUser" class="inp-field" placeholder="Enter User ID">
+
+  <label class="inp-label">PASSWORD</label>
+  <input type="password" id="loginPass" class="inp-field" placeholder="Enter Password">
+
+  <button class="btn-generate" style="background: #3b82f6;" onclick="handleLogin()">LOGIN TO DASHBOARD</button>
+</div>
+
+<!-- 2. RESELLER DASHBOARD (Only visible after login) -->
+<div class="app-wrapper" id="dashboardBox" style="display: none;">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <h1>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        Seller Panel
+      </h1>
+      <div class="time-text">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        <span id="liveClock">11 Oct 2026, 09:08 AM</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="user-pill">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        <span id="displayUsername">User</span>
+      </div>
+      <!-- FUNCTIONAL LOGOUT BUTTON -->
+      <button class="btn-logout" onclick="handleLogout()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        Logout
+      </button>
+    </div>
+  </header>
+
+  <!-- 6 STATS CARDS -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-val c-blue">1</div>
+      <div class="stat-title">TOTAL APPS</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val c-purple" id="valTotalKeys">0</div>
+      <div class="stat-title">TOTAL KEYS</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val c-green" id="valActive">0</div>
+      <div class="stat-title">ACTIVE</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val c-red" id="valExpired">0</div>
+      <div class="stat-title">EXPIRED</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val c-amber" id="valUnused">0</div>
+      <div class="stat-title">UNUSED</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val c-slate" id="valFrozen">0</div>
+      <div class="stat-title">FROZEN</div>
+    </div>
+  </div>
+
+  <!-- TAB: APPS -->
+  <div id="tabApps">
+    <div class="section-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+      Apps (1)
+    </div>
+
+    <!-- APP CARD -->
+    <div class="app-card">
+      <div class="app-info">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+        <div>
+          <div class="app-name">NMMS</div>
+          <div class="app-package">com.dord.nmms</div>
+        </div>
+      </div>
+
+      <button class="btn-generate" onclick="openKeyModal()">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M21 2l-2 2m-1.5 6.1L16 11l-4-4 2-2 1.5 1.5M7 13l-4 4v4h4l4-4M10 10l4 4"/></svg>
+        Generate Key
+      </button>
+
+      <!-- RATES -->
+      <div class="rates-row">
+        <div class="rate-box">
+          <div class="rate-header">🔑 HOUR RATE</div>
+          <div class="rate-price">₹5.00</div>
+          <div class="rate-period">/ hour</div>
+        </div>
+        <div class="rate-box">
+          <div class="rate-header">🔑 DAY RATE</div>
+          <div class="rate-price">₹40.00</div>
+          <div class="rate-period">/ day</div>
+        </div>
+        <div class="rate-box">
+          <div class="rate-header">🔑 MONTH RATE</div>
+          <div class="rate-price">₹1,200.00</div>
+          <div class="rate-period">/ month</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: KEYS -->
+  <div id="tabKeys" style="display: none;">
+    <div class="section-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M21 2l-2 2m-1.5 6.1L16 11l-4-4 2-2 1.5 1.5M7 13l-4 4v4h4l4-4M10 10l4 4"/></svg>
+      Generated Keys List
+    </div>
+    <div id="keysContainer"></div>
+  </div>
+
+  <!-- TAB: BALANCE -->
+  <div id="tabBalance" style="display: none;">
+    <div class="section-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+      Wallet & Validity
+    </div>
+    <div class="app-card" style="text-align: center;">
+      <div style="font-size: 12px; color: #94a3b8;">AVAILABLE WALLET BALANCE</div>
+      <div style="font-size: 32px; font-weight: 800; color: #22c55e; margin: 6px 0;" id="walletBalance">₹0.00</div>
+      <div style="font-size: 12px; color: #60a5fa; margin-top: 8px;" id="validityStatus">Checking Validity...</div>
+      <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Recharge / Validity ke liye Master Admin se contact karein</div>
+    </div>
+  </div>
+
+  <!-- BOTTOM FLOATING NAV -->
+  <nav class="bottom-nav">
+    <div class="nav-container">
+      <button class="nav-item active" id="btnNavApps" onclick="switchTab('apps')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+        Apps
+      </button>
+      <button class="nav-item" id="btnNavKeys" onclick="switchTab('keys')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-1.5 6.1L16 11l-4-4 2-2 1.5 1.5M7 13l-4 4v4h4l4-4M10 10l4 4"/></svg>
+        Keys
+      </button>
+      <button class="nav-item" id="btnNavBalance" onclick="switchTab('balance')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+        Balance
+      </button>
+    </div>
+  </nav>
+
+</div>
+
+<!-- KEY GENERATION MODAL -->
+<div class="modal-overlay" id="keyModal">
+  <div class="modal-card">
+    <div style="font-size: 16px; font-weight: 800; margin-bottom: 14px;">Generate NMMS Key</div>
+
+    <label class="inp-label">CHOOSE PLAN</label>
+    <div class="plan-selector">
+      <div class="plan-btn" onclick="selectPlan('1h', 5, this)">1 Hour (₹5)</div>
+      <div class="plan-btn selected" onclick="selectPlan('1d', 40, this)">1 Day (₹40)</div>
+      <div class="plan-btn" onclick="selectPlan('1m', 1200, this)">1 Month (₹1.2k)</div>
+    </div>
+
+    <label class="inp-label">CUSTOM KEY (OPTIONAL)</label>
+    <input type="text" id="custKey" class="inp-field" placeholder="Leave empty for auto-key">
+
+    <div style="display: flex; gap: 8px;">
+      <button style="flex:1; background:#1e233d; color:#fff; border:none; padding:12px; border-radius:8px; font-weight:700;" onclick="closeKeyModal()">Cancel</button>
+      <button class="btn-generate" style="flex:2;" onclick="confirmGenerate()">Confirm & Pay</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API_URL = window.location.origin;
+  let activeUser = localStorage.getItem("reseller_user") || "";
+  let currentCost = 40;
+  let currentPlan = '1d';
+
+  // Live Clock
+  function updateClock() {
+    const d = new Date();
+    const opts = { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true };
+    document.getElementById('liveClock').innerText = d.toLocaleDateString('en-GB', opts).replace(',', '');
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // LOGIN FUNCTION
+  function handleLogin() {
+    const u = document.getElementById("loginUser").value.trim().toLowerCase();
+    const p = document.getElementById("loginPass").value.trim();
+
+    if (!u || !p) return alert("Username aur Password fill karein!");
+
+    fetch(`${API_URL}/reseller/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: `username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`
+    })
+    .then(r => r.json())
+    .then(res => {
+      if (res.success) {
+        localStorage.setItem("reseller_user", u);
+        activeUser = u;
+        showDashboard();
+      } else {
+        alert(res.msg);
+      }
+    })
+    .catch(() => alert("Server connection failed!"));
+  }
+
+  // REAL LOGOUT FUNCTION (Clears Session)
+  function handleLogout() {
+    localStorage.removeItem("reseller_user");
+    activeUser = "";
+    document.getElementById("dashboardBox").style.display = "none";
+    document.getElementById("loginBox").style.display = "block";
+    document.getElementById("loginUser").value = "";
+    document.getElementById("loginPass").value = "";
+  }
+
+  function showDashboard() {
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("dashboardBox").style.display = "block";
+    document.getElementById("displayUsername").innerText = activeUser.toUpperCase();
+    loadResellerData();
+  }
+
+  function loadResellerData() {
+    fetch(`${API_URL}/reseller/data?username=${activeUser}`)
+    .then(r => r.json())
+    .then(data => {
+      if (!data.success) return handleLogout();
+
+      document.getElementById("walletBalance").innerText = "₹" + parseFloat(data.balance).toFixed(2);
+      
+      const now = Date.now();
+      if (data.expiry_timestamp > 0) {
+        const remDays = Math.ceil((data.expiry_timestamp - now) / (1000 * 60 * 60 * 24));
+        document.getElementById("validityStatus").innerText = `Account Validity: ${remDays} Din Baaki (${new Date(data.expiry_timestamp).toLocaleDateString('en-GB')})`;
+      } else {
+        document.getElementById("validityStatus").innerText = `Account Validity: Lifetime Active`;
+      }
+
+      // 6 Stats Update
+      const keys = data.keys || [];
+      document.getElementById("valTotalKeys").innerText = keys.length;
+      let act=0, un=0, fr=0, exp=0;
+      keys.forEach(k => {
+        if (k.status === 'active') act++;
+        else if (k.status === 'unused') un++;
+        else if (k.status === 'frozen') fr++;
+        else if (k.status === 'expired') exp++;
+      });
+      document.getElementById("valActive").innerText = act;
+      document.getElementById("valUnused").innerText = un;
+      document.getElementById("valFrozen").innerText = fr;
+      document.getElementById("valExpired").innerText = exp;
+
+      // Keys List render
+      const kc = document.getElementById("keysContainer");
+      if (keys.length === 0) {
+        kc.innerHTML = `<div style="text-align:center; color:#64748b; font-size:12px; padding:30px;">Koi key generate nahi hui hai.</div>`;
+      } else {
+        kc.innerHTML = keys.map(k => `
+          <div class="key-card">
+            <div class="key-header">
+              <span style="font-weight:700; color:#fff;">${k.key}</span>
+              <span class="badge badge-${k.status}">${k.status}</span>
+            </div>
+            <div style="font-size:11px; color:#818ba0; margin-top:4px;">
+              Plan: ${k.plan} | HWID: ${k.hwid || 'Auto-bind on first login'}
+            </div>
+            <button onclick="navigator.clipboard.writeText('${k.key}').then(()=>alert('Copied!'))" style="margin-top:8px; background:#1e233d; border:none; color:#cbd5e1; font-size:11px; padding:4px 8px; border-radius:4px; cursor:pointer;">Copy Key</button>
+          </div>
+        `).join('');
+      }
+    });
+  }
+
+  function selectPlan(p, cost, el) {
+    document.querySelectorAll('.plan-btn').forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected');
+    currentPlan = p;
+    currentCost = cost;
+  }
+
+  function openKeyModal() { document.getElementById("keyModal").style.display = "flex"; }
+  function closeKeyModal() { document.getElementById("keyModal").style.display = "none"; }
+
+  function confirmGenerate() {
+    let key = document.getElementById("custKey").value.trim().toUpperCase();
+    if (!key) {
+      key = "VIP-" + Math.random().toString(36).substring(2, 6).toUpperCase() + "-" + Math.random().toString(36).substring(2, 6).toUpperCase();
+    }
+
+    fetch(`${API_URL}/reseller/generate_key`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: `username=${activeUser}&key=${key}&plan=${currentPlan}&cost=${currentCost}`
+    })
+    .then(r => r.json())
+    .then(res => {
+      if (res.success) {
+        alert("Key Generated: " + res.key);
+        closeKeyModal();
+        loadResellerData();
+      } else {
+        alert(res.msg);
+      }
+    });
+  }
+
+  function switchTab(t) {
+    document.getElementById('tabApps').style.display = (t === 'apps') ? 'block' : 'none';
+    document.getElementById('tabKeys').style.display = (t === 'keys') ? 'block' : 'none';
+    document.getElementById('tabBalance').style.display = (t === 'balance') ? 'block' : 'none';
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    document.getElementById('btnNav' + t.charAt(0).toUpperCase() + t.slice(1)).classList.add('active');
+  }
+
+  // Check login on load
+  if (activeUser) {
+    showDashboard();
+  }
+</script>
+
+</body>
+</html>
