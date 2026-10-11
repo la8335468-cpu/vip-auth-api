@@ -9,7 +9,7 @@ CORS(app)
 
 DB_PATH = "database.db"
 
-# --- DATABASE INIT ---
+# --- DATABASE CONNECTION & INIT ---
 def get_db():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -160,7 +160,7 @@ def reseller_data():
         "keys": [dict(k) for k in keys]
     })
 
-# KEY GENERATION (Without Rupee / Balance Check)
+# Key Generation (Without Rupee / Wallet Deduction)
 @app.route('/reseller/generate_key', methods=['POST'])
 def reseller_generate_key():
     user = request.form.get('username', '').strip().lower()
@@ -195,14 +195,14 @@ def reseller_generate_key():
 
     return jsonify({"success": True, "key": key})
 
-# EDIT KEY (Plan Change / Reset HWID / Change Status)
+# Key Edit (Status / Plan / HWID Reset)
 @app.route('/reseller/edit_key', methods=['POST'])
 def reseller_edit_key():
     user = request.form.get('username', '').strip().lower()
     key = request.form.get('key', '').strip().upper()
     status = request.form.get('status', '').strip()
     plan = request.form.get('plan', '').strip()
-    reset_hwid = request.form.get('reset_hwid', 'false').lower() == 'true'
+    reset_hwid = str(request.form.get('reset_hwid', '')).lower() == 'true'
 
     conn = get_db()
     cursor = conn.cursor()
@@ -247,7 +247,7 @@ def reseller_edit_key():
 
     return jsonify({"success": True, "msg": "Key successfully update ho gayi!"})
 
-# DELETE KEY
+# Key Delete
 @app.route('/reseller/delete_key', methods=['POST'])
 def reseller_delete_key():
     user = request.form.get('username', '').strip().lower()
@@ -308,4 +308,3 @@ def verify():
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 8000))
     app.run(host='0.0.0.0', port=port)
-.
