@@ -83,13 +83,13 @@
     .btn-action {
       border: none;
       border-radius: 6px;
-      padding: 7px 12px;
+      padding: 6px 10px;
       font-size: 11px;
       font-weight: 700;
       cursor: pointer;
     }
     .btn-del { background: #311319; color: #f87171; border: 1px solid #451a23; }
-    .btn-del:hover { background: #451a23; }
+    .btn-recharge { background: #14281f; color: #34d399; border: 1px solid #1c3b2d; }
 
     .reseller-item {
       background: #0d0f1b;
@@ -119,7 +119,7 @@
     .badge-expired { background: #451a1a; color: #f87171; }
 
     .reseller-info {
-      font-size: 12px;
+      font-size: 11px;
       color: #94a3b8;
       line-height: 1.6;
     }
@@ -140,7 +140,7 @@
     <button onclick="loadResellers()" style="background:#1e233d; border:none; color:#38bdf8; font-size:12px; font-weight:700; padding:6px 12px; border-radius:8px; cursor:pointer;">Refresh</button>
   </div>
 
-  <!-- CREATE RESELLER CARD (NO WALLET / RUPEES) -->
+  <!-- CREATE RESELLER CARD -->
   <div class="card">
     <h2>
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7.5" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
@@ -156,10 +156,13 @@
     <label>Validity (Kitne Din Tak Chalega)</label>
     <input type="number" id="rDays" value="30" placeholder="Number of days (e.g. 30)">
 
+    <label>Initial Wallet Balance (₹)</label>
+    <input type="number" id="rBal" value="500" placeholder="Wallet balance (e.g. 500)">
+
     <button class="btn btn-green" onclick="createReseller()">CREATE RESELLER ID</button>
   </div>
 
-  <!-- RESELLER IDS LIST -->
+  <!-- REGISTERED RESELLERS LIST -->
   <div class="card">
     <h2>RESELLER IDS</h2>
     <div id="resellersList" style="margin-top: 10px;">Loading resellers...</div>
@@ -178,13 +181,14 @@
     const u = document.getElementById("rUser").value.trim().toLowerCase();
     const p = document.getElementById("rPass").value.trim();
     const d = document.getElementById("rDays").value;
+    const b = document.getElementById("rBal").value;
 
     if (!u || !p || !d) return alert("Username, Password aur Validity Days fill karein!");
 
     fetch(`${API_URL}/admin/create_reseller`, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: `username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}&days=${d}`
+      body: `username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}&days=${d}&balance=${b}`
     })
     .then(r => r.json())
     .then(data => {
@@ -215,16 +219,18 @@
         return `
           <div class="reseller-item">
             <div class="reseller-header">
-              <span class="reseller-id">${r.username.toUpperCase()}</span>
+              <span class="reseller-id">${r.username}</span>
               <span class="badge-days ${isExp ? 'badge-expired' : 'badge-active'}">
                 ${isExp ? 'EXPIRED' : remDays + ' DIN BAAKI'}
               </span>
             </div>
             <div class="reseller-info">
               <div>Password: <strong style="color: #facc15;">${r.password || 'N/A'}</strong></div>
+              <div>Wallet Balance: <strong style="color: #22c55e;">₹${parseFloat(r.balance).toFixed(2)}</strong></div>
               <div>Valid Till: <strong style="color: #cbd5e1;">${expDate}</strong></div>
             </div>
             <div class="actions-row">
+              <button class="btn-action btn-recharge" onclick="addBal('${r.username}')">+₹100 Wallet</button>
               <button class="btn-action btn-del" onclick="delReseller('${r.username}')">Delete ID</button>
             </div>
           </div>
@@ -232,8 +238,16 @@
       }).join('');
     })
     .catch(() => {
-      document.getElementById("resellersList").innerHTML = `<div style="color:#ef4444; font-size:12px; text-align:center; padding:15px;">Failed to load data. 15-20 second baad Refresh dabayein.</div>`;
+      document.getElementById("resellersList").innerHTML = `<div style="color:#ef4444; font-size:12px; text-align:center; padding:15px;">Failed to load data. 15 second baad Refresh dabayein.</div>`;
     });
+  }
+
+  function addBal(u) {
+    fetch(`${API_URL}/admin/recharge_reseller`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: `username=${u}&amount=100`
+    }).then(() => loadResellers());
   }
 
   function delReseller(u) {
