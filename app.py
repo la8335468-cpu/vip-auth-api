@@ -7,11 +7,11 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-# Aapka exact Firebase Realtime Database URL
+# Aapka Firebase Realtime Database URL
 FIREBASE_URL = "https://amanmod-91196-default-rtdb.firebaseio.com"
 
 
-# --- HELPER FUNCTIONS FOR FIREBASE REST API ---
+# --- FIREBASE REST API HELPERS ---
 def fb_get(endpoint):
     try:
         r = requests.get(f"{FIREBASE_URL}/{endpoint}.json", timeout=10)
@@ -41,19 +41,19 @@ def fb_delete(endpoint):
         return False
 
 
-# --- WEB PAGE ROUTES ---
+# --- WEB PAGES ROUTES ---
 @app.route('/')
 @app.route('/seller')
 def seller_page():
     if os.path.exists('seller.html'):
         return send_file('seller.html')
-    return "Error: seller.html missing in repo", 404
+    return "Error: seller.html file repo me nahi mili", 404
 
 @app.route('/admin')
 def admin_page():
     if os.path.exists('admin.html'):
         return send_file('admin.html')
-    return "Error: admin.html missing in repo", 404
+    return "Error: admin.html file repo me nahi mili", 404
 
 
 # --- MASTER ADMIN APIS ---
@@ -79,7 +79,7 @@ def create_reseller():
 
     if fb_put(f"resellers/{user}", data):
         return jsonify({"success": True, "msg": f"Reseller [{user}] successfully create ho gaya!"})
-    return jsonify({"success": False, "msg": "Firebase save error!"}), 500
+    return jsonify({"success": False, "msg": "Firebase data save error!"}), 500
 
 @app.route('/admin/get_resellers', methods=['GET'])
 def get_resellers():
