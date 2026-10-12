@@ -1,46 +1,45 @@
 import os
-import sqlite3
 import time
+import requests
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)
 
-DB_PATH = "database.db"
+# Aapka exact Firebase Realtime Database URL
+FIREBASE_URL = "https://amanmod-91196-default-rtdb.firebaseio.com"
 
-# --- DATABASE CONNECTION & INIT ---
-def get_db():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
 
-def init_db():
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS resellers (
-            username TEXT PRIMARY KEY,
-            password TEXT NOT NULL,
-            balance REAL DEFAULT 0.0,
-            expiry_timestamp INTEGER DEFAULT 0,
-            status TEXT DEFAULT 'active'
-        )
-    """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS keys (
-            key TEXT PRIMARY KEY,
-            hwid TEXT DEFAULT '',
-            status TEXT DEFAULT 'unused',
-            reseller TEXT DEFAULT 'ADMIN',
-            plan TEXT DEFAULT '1 Day',
-            expiry_timestamp INTEGER DEFAULT 0
-        )
-    """)
-    conn.commit()
-    conn.close()
+# --- HELPER FUNCTIONS FOR FIREBASE REST API ---
+def fb_get(endpoint):
+    try:
+        r = requests.get(f"{FIREBASE_URL}/{endpoint}.json", timeout=10)
+        return r.json() if r.status_code == 200 else None
+    except Exception:
+        return None
 
-init_db()
+def fb_put(endpoint, data):
+    try:
+        r = requests.put(f"{FIREBASE_URL}/{endpoint}.json", json=data, timeout=10)
+        return r.status_code in [200, 201]
+    except Exception:
+        return False
+
+def fb_patch(endpoint, data):
+    try:
+        r = requests.patch(f"{FIREBASE_URL}/{endpoint}.json", json=data, timeout=10)
+        return r.status_code == 200
+    except Exception:
+        return False
+
+def fb_delete(endpoint):
+    try:
+        r = requests.delete(f"{FIREBASE_URL}/{endpoint}.json", timeout=10)
+        return r.status_code == 200
+    except Exception:
+        return False
+
 
 # --- WEB PAGE ROUTES ---
 @app.route('/')
@@ -48,13 +47,13 @@ init_db()
 def seller_page():
     if os.path.exists('seller.html'):
         return send_file('seller.html')
-    return "Error: seller.html file missing in repo", 404
+    return "Error: seller.html missing in repo", 404
 
 @app.route('/admin')
 def admin_page():
     if os.path.exists('admin.html'):
         return send_file('admin.html')
-    return "Error: admin.html file missing in repo", 404
+    return "Error: admin.html missing in repo", 404
 
 
 # --- MASTER ADMIN APIS ---
@@ -69,49 +68,46 @@ def create_reseller():
         return jsonify({"success": False, "msg": "Username aur Password zaroori hain!"}), 400
 
     expiry = int(time.time() * 1000) + (days * 24 * 60 * 60 * 1000)
-    conn = get_db()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("""
-            INSERT OR REPLACE INTO resellers (username, password, balance, expiry_timestamp, status) 
-            VALUES (?, ?, ?, ?, 'active')
-        """, (user, pwd, balance, expiry))
-        conn.commit()
+
+    data = {
+        "username": user,
+        "password": pwd,
+        "balance": balance,
+        "expiry_timestamp": expiry,
+        "status": "active"
+    }
+
+    if fb_put(f"resellers/{user}", data):
         return jsonify({"success": True, "msg": f"Reseller [{user}] successfully create ho gaya!"})
-    except Exception as e:
-        return jsonify({"success": False, "msg": str(e)}), 500
-    finally:
-        conn.close()
+    return jsonify({"success": False, "msg": "Firebase save error!"}), 500
 
 @app.route('/admin/get_resellers', methods=['GET'])
 def get_resellers():
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("SELECT username, password, balance, expiry_timestamp, status FROM resellers")
-    rows = cursor.fetchall()
-    conn.close()
-    return jsonify([dict(r) for r in rows])
+    resellers_dict = fb_get("resellers")
+    if not resellers_dict or not isinstance(resellers_dict, dict):
+        return jsonify([])
+    return jsonify(list(resellers_dict.values()))
 
 @app.route('/admin/recharge_reseller', methods=['POST'])
 def recharge_reseller():
     user = request.form.get('username', '').strip().lower()
     amount = float(request.form.get('amount', 0.0))
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("UPDATE resellers SET balance = balance + ? WHERE username = ?", (amount, user))
-    conn.commit()
-    conn.close()
-    return jsonify({"success": True})
+
+    reseller = fb_get(f"resellers/{user}")
+    if not reseller:
+        return jsonify({"success": False, "msg": "Reseller nahi mila!"}), 404
+
+    new_bal = float(reseller.get('balance', 0.0)) + amount
+    if fb_patch(f"resellers/{user}", {"balance": new_bal}):
+        return jsonify({"success": True, "balance": new_bal})
+    return jsonify({"success": False, "msg": "Recharge fail!"}), 500
 
 @app.route('/admin/delete_reseller', methods=['POST'])
 def delete_reseller():
     user = request.form.get('username', '').strip().lower()
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM resellers WHERE username = ?", (user,))
-    conn.commit()
-    conn.close()
-    return jsonify({"success": True})
+    if fb_delete(f"resellers/{user}"):
+        return jsonify({"success": True})
+    return jsonify({"success": False, "msg": "Delete fail!"}), 500
 
 
 # --- RESELLER PANEL APIS ---
@@ -120,47 +116,48 @@ def reseller_login():
     user = request.form.get('username', '').strip().lower()
     pwd = request.form.get('password', '').strip()
 
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM resellers WHERE username = ?", (user,))
-    row = cursor.fetchone()
-    conn.close()
-
-    if not row or row['password'] != pwd:
+    reseller = fb_get(f"resellers/{user}")
+    if not reseller or reseller.get('password') != pwd:
         return jsonify({"success": False, "msg": "Galat Username ya Password!"}), 401
 
-    if row['status'] != 'active':
+    if reseller.get('status') != 'active':
         return jsonify({"success": False, "msg": "Aapka account Blocked hai!"}), 403
 
     now = int(time.time() * 1000)
-    if row['expiry_timestamp'] > 0 and now > row['expiry_timestamp']:
+    exp = reseller.get('expiry_timestamp', 0)
+    if exp > 0 and now > exp:
         return jsonify({"success": False, "msg": "Aapka Reseller account EXPIRE ho chuka hai!"}), 403
 
-    return jsonify({"success": True, "username": row['username'], "balance": row['balance']})
+    return jsonify({
+        "success": True,
+        "username": reseller.get('username', user),
+        "balance": reseller.get('balance', 0.0)
+    })
 
 @app.route('/reseller/data', methods=['GET'])
 def reseller_data():
     user = request.args.get('username', '').strip().lower()
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("SELECT balance, expiry_timestamp FROM resellers WHERE username = ?", (user,))
-    reseller = cursor.fetchone()
-
-    cursor.execute("SELECT * FROM keys WHERE reseller = ? ORDER BY expiry_timestamp DESC", (user,))
-    keys = cursor.fetchall()
-    conn.close()
+    reseller = fb_get(f"resellers/{user}")
 
     if not reseller:
         return jsonify({"success": False, "msg": "User not found"}), 404
 
+    all_keys = fb_get("keys") or {}
+    user_keys = []
+    if isinstance(all_keys, dict):
+        for k, v in all_keys.items():
+            if isinstance(v, dict) and v.get('reseller', '').lower() == user:
+                user_keys.append(v)
+
+    user_keys.sort(key=lambda x: x.get('expiry_timestamp', 0), reverse=True)
+
     return jsonify({
         "success": True,
-        "balance": reseller['balance'],
-        "expiry_timestamp": reseller['expiry_timestamp'],
-        "keys": [dict(k) for k in keys]
+        "balance": reseller.get('balance', 0.0),
+        "expiry_timestamp": reseller.get('expiry_timestamp', 0),
+        "keys": user_keys
     })
 
-# KEY GENERATION (Wallet Balance & Cost Deduction)
 @app.route('/reseller/generate_key', methods=['POST'])
 def reseller_generate_key():
     user = request.form.get('username', '').strip().lower()
@@ -168,13 +165,8 @@ def reseller_generate_key():
     plan = request.form.get('plan', '1d')
     cost = float(request.form.get('cost', 40.0))
 
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("SELECT balance FROM resellers WHERE username = ?", (user,))
-    res = cursor.fetchone()
-
-    if not res or res['balance'] < cost:
-        conn.close()
+    reseller = fb_get(f"resellers/{user}")
+    if not reseller or float(reseller.get('balance', 0.0)) < cost:
         return jsonify({"success": False, "msg": "Balance kam hai! Wallet recharge karein."}), 400
 
     now = int(time.time() * 1000)
@@ -188,17 +180,22 @@ def reseller_generate_key():
         exp = now + (30 * 24 * 3600 * 1000)
         plan_name = "1 Month"
 
-    cursor.execute("UPDATE resellers SET balance = balance - ? WHERE username = ?", (cost, user))
-    cursor.execute("""
-        INSERT INTO keys (key, status, reseller, plan, expiry_timestamp) 
-        VALUES (?, 'unused', ?, ?, ?)
-    """, (key, user, plan_name, exp))
-    conn.commit()
-    conn.close()
+    new_bal = float(reseller.get('balance', 0.0)) - cost
+    fb_patch(f"resellers/{user}", {"balance": new_bal})
 
-    return jsonify({"success": True, "key": key, "cost": cost})
+    key_data = {
+        "key": key,
+        "hwid": "",
+        "status": "unused",
+        "reseller": user,
+        "plan": plan_name,
+        "expiry_timestamp": exp
+    }
 
-# EDIT KEY
+    if fb_put(f"keys/{key}", key_data):
+        return jsonify({"success": True, "key": key, "cost": cost})
+    return jsonify({"success": False, "msg": "Key generate fail!"}), 500
+
 @app.route('/reseller/edit_key', methods=['POST'])
 def reseller_edit_key():
     user = request.form.get('username', '').strip().lower()
@@ -207,18 +204,13 @@ def reseller_edit_key():
     plan = request.form.get('plan', '').strip()
     reset_hwid = str(request.form.get('reset_hwid', '')).lower() == 'true'
 
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM keys WHERE key = ? AND reseller = ?", (key, user))
-    row = cursor.fetchone()
-
-    if not row:
-        conn.close()
+    key_obj = fb_get(f"keys/{key}")
+    if not key_obj or key_obj.get('reseller', '').lower() != user:
         return jsonify({"success": False, "msg": "Key nahi mili!"}), 404
 
     now = int(time.time() * 1000)
-    exp = row['expiry_timestamp']
-    plan_name = row['plan']
+    exp = key_obj.get('expiry_timestamp', 0)
+    plan_name = key_obj.get('plan', '1 Day')
 
     if plan:
         if plan == '1h':
@@ -231,32 +223,30 @@ def reseller_edit_key():
             exp = now + (30 * 24 * 3600 * 1000)
             plan_name = "1 Month"
 
-    new_status = status if status else row['status']
-    new_hwid = "" if reset_hwid else row['hwid']
+    updates = {
+        "plan": plan_name,
+        "expiry_timestamp": exp,
+        "status": status if status else key_obj.get('status', 'unused')
+    }
+    if reset_hwid:
+        updates["hwid"] = ""
 
-    cursor.execute("""
-        UPDATE keys 
-        SET plan = ?, expiry_timestamp = ?, status = ?, hwid = ?
-        WHERE key = ? AND reseller = ?
-    """, (plan_name, exp, new_status, new_hwid, key, user))
-    conn.commit()
-    conn.close()
+    if fb_patch(f"keys/{key}", updates):
+        return jsonify({"success": True, "msg": "Key successfully update ho gayi!"})
+    return jsonify({"success": False, "msg": "Key update fail!"}), 500
 
-    return jsonify({"success": True, "msg": "Key successfully update ho gayi!"})
-
-# DELETE KEY
 @app.route('/reseller/delete_key', methods=['POST'])
 def reseller_delete_key():
     user = request.form.get('username', '').strip().lower()
     key = request.form.get('key', '').strip().upper()
 
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM keys WHERE key = ? AND reseller = ?", (key, user))
-    conn.commit()
-    conn.close()
+    key_obj = fb_get(f"keys/{key}")
+    if not key_obj or key_obj.get('reseller', '').lower() != user:
+        return jsonify({"success": False, "msg": "Key nahi mili!"}), 404
 
-    return jsonify({"success": True, "msg": "Key permanently delete ho gayi!"})
+    if fb_delete(f"keys/{key}"):
+        return jsonify({"success": True, "msg": "Key permanently delete ho gayi!"})
+    return jsonify({"success": False, "msg": "Delete fail!"}), 500
 
 
 # --- TARGET ANDROID APP VERIFY (/verify) ---
@@ -268,37 +258,27 @@ def verify():
     if not key or not hwid:
         return jsonify({"status": False, "msg": "KEY AUR HWID MISSING HAI"}), 400
 
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM keys WHERE key = ?", (key,))
-    row = cursor.fetchone()
-
-    if not row:
-        conn.close()
+    key_obj = fb_get(f"keys/{key}")
+    if not key_obj:
         return jsonify({"status": False, "msg": "INVALID LICENSE KEY"})
 
     now = int(time.time() * 1000)
-    if row['expiry_timestamp'] > 0 and now > row['expiry_timestamp']:
-        cursor.execute("UPDATE keys SET status = 'expired' WHERE key = ?", (key,))
-        conn.commit()
-        conn.close()
+    exp = key_obj.get('expiry_timestamp', 0)
+    if exp > 0 and now > exp:
+        fb_patch(f"keys/{key}", {"status": "expired"})
         return jsonify({"status": False, "msg": "KEY EXPIRED"})
 
-    if row['status'] == 'frozen':
-        conn.close()
+    if key_obj.get('status') == 'frozen':
         return jsonify({"status": False, "msg": "KEY IS FROZEN"})
 
-    if not row['hwid']:
-        cursor.execute("UPDATE keys SET hwid = ?, status = 'active' WHERE key = ?", (hwid, key))
-        conn.commit()
-        conn.close()
+    bound_hwid = key_obj.get('hwid', '').strip().lower()
+    if not bound_hwid:
+        fb_patch(f"keys/{key}", {"hwid": hwid, "status": "active"})
         return jsonify({"status": True, "msg": "DEVICE BOUND & ACCESS GRANTED"})
 
-    if row['hwid'].lower() == hwid:
-        conn.close()
+    if bound_hwid == hwid:
         return jsonify({"status": True, "msg": "LOGIN SUCCESSFUL"})
     else:
-        conn.close()
         return jsonify({"status": False, "msg": "HWID MISMATCH! BOUND TO ANOTHER DEVICE"})
 
 
