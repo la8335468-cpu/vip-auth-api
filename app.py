@@ -1,44 +1,43 @@
 import os
 import time
-import requests
+import json
+import urllib.request
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)
 
-# Aapka Firebase Realtime Database URL
 FIREBASE_URL = "https://amanmod-91196-default-rtdb.firebaseio.com"
 
-
-# --- FIREBASE REST API HELPERS ---
-def fb_get(endpoint):
+# --- BUILT-IN PYTHON FIREBASE REST API (NO REQUESTS MODULE NEEDED) ---
+def fb_request(endpoint, data=None, method='GET'):
     try:
-        r = requests.get(f"{FIREBASE_URL}/{endpoint}.json", timeout=10)
-        return r.json() if r.status_code == 200 else None
-    except Exception:
+        url = f"{FIREBASE_URL}/{endpoint}.json"
+        body = json.dumps(data).encode('utf-8') if data is not None else None
+        headers = {'Content-Type': 'application/json'} if body else {}
+
+        req = urllib.request.Request(url, data=body, headers=headers, method=method)
+        with urllib.request.urlopen(req, timeout=10) as response:
+            res_body = response.read().decode('utf-8')
+            return json.loads(res_body) if res_body and res_body != "null" else True
+    except Exception as e:
         return None
 
+def fb_get(endpoint):
+    return fb_request(endpoint, method='GET')
+
 def fb_put(endpoint, data):
-    try:
-        r = requests.put(f"{FIREBASE_URL}/{endpoint}.json", json=data, timeout=10)
-        return r.status_code in [200, 201]
-    except Exception:
-        return False
+    res = fb_request(endpoint, data=data, method='PUT')
+    return res is not None
 
 def fb_patch(endpoint, data):
-    try:
-        r = requests.patch(f"{FIREBASE_URL}/{endpoint}.json", json=data, timeout=10)
-        return r.status_code == 200
-    except Exception:
-        return False
+    res = fb_request(endpoint, data=data, method='PATCH')
+    return res is not None
 
 def fb_delete(endpoint):
-    try:
-        r = requests.delete(f"{FIREBASE_URL}/{endpoint}.json", timeout=10)
-        return r.status_code == 200
-    except Exception:
-        return False
+    res = fb_request(endpoint, method='DELETE')
+    return res is not None
 
 
 # --- WEB PAGES ROUTES ---
@@ -47,13 +46,13 @@ def fb_delete(endpoint):
 def seller_page():
     if os.path.exists('seller.html'):
         return send_file('seller.html')
-    return "Error: seller.html file repo me nahi mili", 404
+    return "Error: seller.html missing", 404
 
 @app.route('/admin')
 def admin_page():
     if os.path.exists('admin.html'):
         return send_file('admin.html')
-    return "Error: admin.html file repo me nahi mili", 404
+    return "Error: admin.html missing", 404
 
 
 # --- MASTER ADMIN APIS ---
@@ -79,7 +78,7 @@ def create_reseller():
 
     if fb_put(f"resellers/{user}", data):
         return jsonify({"success": True, "msg": f"Reseller [{user}] successfully create ho gaya!"})
-    return jsonify({"success": False, "msg": "Firebase data save error!"}), 500
+    return jsonify({"success": False, "msg": "Firebase write fail! Check Firebase Rules."}), 500
 
 @app.route('/admin/get_resellers', methods=['GET'])
 def get_resellers():
@@ -94,7 +93,7 @@ def recharge_reseller():
     amount = float(request.form.get('amount', 0.0))
 
     reseller = fb_get(f"resellers/{user}")
-    if not reseller:
+    if not reseller or not isinstance(reseller, dict):
         return jsonify({"success": False, "msg": "Reseller nahi mila!"}), 404
 
     new_bal = float(reseller.get('balance', 0.0)) + amount
@@ -117,7 +116,7 @@ def reseller_login():
     pwd = request.form.get('password', '').strip()
 
     reseller = fb_get(f"resellers/{user}")
-    if not reseller or reseller.get('password') != pwd:
+    if not reseller or not isinstance(reseller, dict) or reseller.get('password') != pwd:
         return jsonify({"success": False, "msg": "Galat Username ya Password!"}), 401
 
     if reseller.get('status') != 'active':
@@ -139,7 +138,7 @@ def reseller_data():
     user = request.args.get('username', '').strip().lower()
     reseller = fb_get(f"resellers/{user}")
 
-    if not reseller:
+    if not reseller or not isinstance(reseller, dict):
         return jsonify({"success": False, "msg": "User not found"}), 404
 
     all_keys = fb_get("keys") or {}
@@ -166,7 +165,7 @@ def reseller_generate_key():
     cost = float(request.form.get('cost', 40.0))
 
     reseller = fb_get(f"resellers/{user}")
-    if not reseller or float(reseller.get('balance', 0.0)) < cost:
+    if not reseller or not isinstance(reseller, dict) or float(reseller.get('balance', 0.0)) < cost:
         return jsonify({"success": False, "msg": "Balance kam hai! Wallet recharge karein."}), 400
 
     now = int(time.time() * 1000)
@@ -205,7 +204,7 @@ def reseller_edit_key():
     reset_hwid = str(request.form.get('reset_hwid', '')).lower() == 'true'
 
     key_obj = fb_get(f"keys/{key}")
-    if not key_obj or key_obj.get('reseller', '').lower() != user:
+    if not key_obj or not isinstance(key_obj, dict) or key_obj.get('reseller', '').lower() != user:
         return jsonify({"success": False, "msg": "Key nahi mili!"}), 404
 
     now = int(time.time() * 1000)
@@ -241,7 +240,7 @@ def reseller_delete_key():
     key = request.form.get('key', '').strip().upper()
 
     key_obj = fb_get(f"keys/{key}")
-    if not key_obj or key_obj.get('reseller', '').lower() != user:
+    if not key_obj or not isinstance(key_obj, dict) or key_obj.get('reseller', '').lower() != user:
         return jsonify({"success": False, "msg": "Key nahi mili!"}), 404
 
     if fb_delete(f"keys/{key}"):
@@ -259,7 +258,7 @@ def verify():
         return jsonify({"status": False, "msg": "KEY AUR HWID MISSING HAI"}), 400
 
     key_obj = fb_get(f"keys/{key}")
-    if not key_obj:
+    if not key_obj or not isinstance(key_obj, dict):
         return jsonify({"status": False, "msg": "INVALID LICENSE KEY"})
 
     now = int(time.time() * 1000)
