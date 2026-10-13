@@ -10,7 +10,7 @@ CORS(app)
 
 FIREBASE_URL = "https://amanmod-91196-default-rtdb.firebaseio.com"
 
-# --- BUILT-IN PYTHON FIREBASE REST API (NO REQUESTS MODULE NEEDED) ---
+# --- BUILT-IN PYTHON FIREBASE REST API ---
 def fb_request(endpoint, data=None, method='GET'):
     try:
         url = f"{FIREBASE_URL}/{endpoint}.json"
@@ -21,7 +21,7 @@ def fb_request(endpoint, data=None, method='GET'):
         with urllib.request.urlopen(req, timeout=10) as response:
             res_body = response.read().decode('utf-8')
             return json.loads(res_body) if res_body and res_body != "null" else True
-    except Exception as e:
+    except Exception:
         return None
 
 def fb_get(endpoint):
@@ -82,10 +82,18 @@ def create_reseller():
 
 @app.route('/admin/get_resellers', methods=['GET'])
 def get_resellers():
-    resellers_dict = fb_get("resellers")
-    if not resellers_dict or not isinstance(resellers_dict, dict):
+    resellers_raw = fb_get("resellers")
+    if not resellers_raw:
         return jsonify([])
-    return jsonify(list(resellers_dict.values()))
+
+    resellers_list = []
+    # Agar text keys hain to Dict aayegi, agar number keys hain to List aayegi
+    if isinstance(resellers_raw, dict):
+        resellers_list = list(resellers_raw.values())
+    elif isinstance(resellers_raw, list):
+        resellers_list = [item for item in resellers_raw if item is not None and isinstance(item, dict)]
+
+    return jsonify(resellers_list)
 
 @app.route('/admin/recharge_reseller', methods=['POST'])
 def recharge_reseller():
@@ -116,7 +124,7 @@ def reseller_login():
     pwd = request.form.get('password', '').strip()
 
     reseller = fb_get(f"resellers/{user}")
-    if not reseller or not isinstance(reseller, dict) or reseller.get('password') != pwd:
+    if not reseller or not isinstance(reseller, dict) or str(reseller.get('password')) != str(pwd):
         return jsonify({"success": False, "msg": "Galat Username ya Password!"}), 401
 
     if reseller.get('status') != 'active':
@@ -129,7 +137,7 @@ def reseller_login():
 
     return jsonify({
         "success": True,
-        "username": reseller.get('username', user),
+        "username": str(reseller.get('username', user)),
         "balance": reseller.get('balance', 0.0)
     })
 
@@ -142,12 +150,13 @@ def reseller_data():
         return jsonify({"success": False, "msg": "User not found"}), 404
 
     all_keys = fb_get("keys") or {}
-    user_keys = []
+    items = []
     if isinstance(all_keys, dict):
-        for k, v in all_keys.items():
-            if isinstance(v, dict) and v.get('reseller', '').lower() == user:
-                user_keys.append(v)
+        items = list(all_keys.values())
+    elif isinstance(all_keys, list):
+        items = [k for k in all_keys if k is not None and isinstance(k, dict)]
 
+    user_keys = [v for v in items if str(v.get('reseller', '')).lower() == user]
     user_keys.sort(key=lambda x: x.get('expiry_timestamp', 0), reverse=True)
 
     return jsonify({
@@ -204,7 +213,7 @@ def reseller_edit_key():
     reset_hwid = str(request.form.get('reset_hwid', '')).lower() == 'true'
 
     key_obj = fb_get(f"keys/{key}")
-    if not key_obj or not isinstance(key_obj, dict) or key_obj.get('reseller', '').lower() != user:
+    if not key_obj or not isinstance(key_obj, dict) or str(key_obj.get('reseller', '')).lower() != user:
         return jsonify({"success": False, "msg": "Key nahi mili!"}), 404
 
     now = int(time.time() * 1000)
@@ -240,7 +249,7 @@ def reseller_delete_key():
     key = request.form.get('key', '').strip().upper()
 
     key_obj = fb_get(f"keys/{key}")
-    if not key_obj or not isinstance(key_obj, dict) or key_obj.get('reseller', '').lower() != user:
+    if not key_obj or not isinstance(key_obj, dict) or str(key_obj.get('reseller', '')).lower() != user:
         return jsonify({"success": False, "msg": "Key nahi mili!"}), 404
 
     if fb_delete(f"keys/{key}"):
