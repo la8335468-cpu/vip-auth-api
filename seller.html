@@ -98,7 +98,7 @@
             border: 1px solid rgba(239, 68, 68, 0.3);
         }
 
-        /* 3 STATS PROFILE CARDS */
+        /* STATS CARDS */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -320,13 +320,13 @@
         <form onsubmit="handleLogin(event)">
             <div class="input-group" style="margin-bottom: 14px;">
                 <label>User ID</label>
-                <input type="text" id="log_user" placeholder="Enter reseller ID" required>
+                <input type="text" id="log_user" placeholder="Ilagay ang reseller ID" required>
             </div>
             <div class="input-group" style="margin-bottom: 18px;">
                 <label>Password</label>
-                <input type="password" id="log_pass" placeholder="Enter password" required>
+                <input type="password" id="log_pass" placeholder="Ilagay ang password" required>
             </div>
-            <button type="submit" class="btn-submit">LOGIN TO DASHBOARD</button>
+            <button type="submit" class="btn-submit">LOGIN SA DASHBOARD</button>
         </form>
     </div>
 
@@ -337,7 +337,7 @@
         <div class="dash-header">
             <div>
                 <h1>RESELLER PANEL</h1>
-                <div style="font-size: 12px; color: var(--text-muted);" id="welcomeUser">Welcome, --</div>
+                <div style="font-size: 12px; color: var(--text-muted);" id="welcomeUser">Maligayang pagdating, --</div>
             </div>
             <div class="header-actions">
                 <button class="btn-header btn-refresh" onclick="loadDashboard()">REFRESH</button>
@@ -348,28 +348,28 @@
         <!-- 3 PROFILE STAT CARDS -->
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-label">Wallet Balance</div>
+                <div class="stat-label">Balanseng Wallet</div>
                 <div class="stat-val" id="statBalance" style="color: #34D399;">₹0.00</div>
-                <div class="stat-sub">Available wallet funds</div>
+                <div class="stat-sub">Kasalukuyang pondo sa wallet</div>
             </div>
 
             <div class="stat-card">
-                <div class="stat-label">Total Generated Keys</div>
+                <div class="stat-label">Kabuuang Nagawang Keys</div>
                 <div class="stat-val" id="statKeyCount" style="color: #60A5FA;">0</div>
-                <div class="stat-sub">Keys created by you</div>
+                <div class="stat-sub">Mga lisensyang nagawa mo</div>
             </div>
 
             <div class="stat-card">
-                <div class="stat-label">Reseller Profile</div>
+                <div class="stat-label">Katayuan ng Profile</div>
                 <div class="stat-val" id="statStatus" style="font-size: 18px; color: #F59E0B;">ACTIVE</div>
-                <div class="stat-sub" id="statExpiry">Valid Till: Lifetime</div>
+                <div class="stat-sub" id="statExpiry">Valid Hanggang: Lifetime</div>
             </div>
         </div>
 
-        <!-- KEY GENERATE CARD -->
+        <!-- KEY GENERATE CARD (WALA NANG DATE & TIME PICKER) -->
         <div class="card">
             <div class="card-title">
-                <span>GENERATE VIP KEY</span>
+                <span>GUMAWA NG VIP KEY</span>
                 <span style="font-size: 12px; color: #60A5FA; cursor: pointer;" onclick="makeRandomKey()">⚡ Random Key</span>
             </div>
             <form onsubmit="generateKey(event)">
@@ -379,38 +379,31 @@
                         <input type="text" id="new_key" placeholder="VIP-XXXX-XXXX" required>
                     </div>
 
-                    <!-- SELECT PLAN: 7D, 15D, 30D, CUSTOM -->
+                    <!-- PILIIN ANG PLAN: 7D, 15D, 30D -->
                     <div class="input-group">
-                        <label>Select Plan</label>
+                        <label>Piliin ang Plan</label>
                         <select id="plan_select" onchange="onPlanChange()">
                             <option value="7d" selected>7 Days (₹1,000)</option>
                             <option value="15d">15 Days (₹1,500)</option>
                             <option value="30d">30 Days (₹2,000)</option>
-                            <option value="custom">📅 Custom Date & Time</option>
                         </select>
                     </div>
 
-                    <!-- DATE & TIME PICKER -->
+                    <!-- DEDUCTION COST -->
                     <div class="input-group">
-                        <label>Expiry Date & Time</label>
-                        <input type="datetime-local" id="new_exp_datetime" required onchange="onDateTimeManualChange()">
-                    </div>
-
-                    <!-- WALLET DEDUCTION PRICE -->
-                    <div class="input-group">
-                        <label>Wallet Deduction (₹)</label>
-                        <input type="number" id="key_cost" value="1000" required>
+                        <label>Bawas sa Wallet (₹)</label>
+                        <input type="number" id="key_cost" value="1000" readonly style="background-color: #121526; color: #34D399; font-weight: bold;">
                     </div>
                 </div>
-                <button type="submit" class="btn-submit">GENERATE LICENSE KEY</button>
+                <button type="submit" class="btn-submit">IKUMPIRMA AT GUMAWA NG KEY</button>
             </form>
         </div>
 
-        <!-- KEYS LIST -->
+        <!-- LISTAHAN NG KEYS -->
         <div class="card">
-            <div class="card-title">GENERATED KEYS</div>
+            <div class="card-title">MGA NAGAWANG KEYS</div>
             <div id="keysContainer">
-                <div style="text-align: center; color: var(--text-muted); padding: 20px;">Loading keys...</div>
+                <div style="text-align: center; color: var(--text-muted); padding: 20px;">Kinakarga ang mga key...</div>
             </div>
         </div>
 
@@ -421,22 +414,18 @@
 <!-- EDIT KEY MODAL -->
 <div class="modal" id="editModal">
     <div class="modal-card">
-        <h3>Edit Key: <span id="editKeyName" style="color: #60A5FA;"></span></h3>
+        <h3>I-edit ang Key: <span id="editKeyName" style="color: #60A5FA;"></span></h3>
         <div class="input-group" style="margin-bottom: 12px;">
-            <label>Change Status</label>
+            <label>Baguhin ang Katayuan</label>
             <select id="editStatus">
                 <option value="unused">UNUSED</option>
                 <option value="active">ACTIVE</option>
-                <option value="frozen">FROZEN (Block)</option>
+                <option value="frozen">FROZEN (I-block)</option>
             </select>
         </div>
-        <div class="input-group" style="margin-bottom: 12px;">
-            <label>New Expiry Date & Time (Optional)</label>
-            <input type="datetime-local" id="editDatetime">
-        </div>
         <div class="modal-actions">
-            <button class="btn-act" onclick="closeEditModal()" style="background: transparent; color: var(--text-muted);">Cancel</button>
-            <button class="btn-act btn-edit" onclick="submitEditKey()">Save Changes</button>
+            <button class="btn-act" onclick="closeEditModal()" style="background: transparent; color: var(--text-muted);">Kanselahin</button>
+            <button class="btn-act btn-edit" onclick="submitEditKey()">I-save</button>
         </div>
     </div>
 </div>
@@ -446,34 +435,17 @@
     let currentUser = localStorage.getItem('reseller_user') || '';
     let editingKey = '';
 
-    // Plan badalne par Price aur Date & Time automatic update hoga
     function onPlanChange() {
         const plan = document.getElementById('plan_select').value;
         const costInput = document.getElementById('key_cost');
-        const dtInput = document.getElementById('new_exp_datetime');
-
-        const now = new Date();
 
         if (plan === '7d') {
             costInput.value = 1000;
-            now.setDate(now.getDate() + 7);
-            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-            dtInput.value = now.toISOString().slice(0, 16);
         } else if (plan === '15d') {
             costInput.value = 1500;
-            now.setDate(now.getDate() + 15);
-            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-            dtInput.value = now.toISOString().slice(0, 16);
         } else if (plan === '30d') {
             costInput.value = 2000;
-            now.setDate(now.getDate() + 30);
-            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-            dtInput.value = now.toISOString().slice(0, 16);
         }
-    }
-
-    function onDateTimeManualChange() {
-        document.getElementById('plan_select').value = 'custom';
     }
 
     function makeRandomKey() {
@@ -484,7 +456,6 @@
         document.getElementById('new_key').value = "VIP-" + r1 + "-" + r2;
     }
 
-    // LOGIN
     async function handleLogin(e) {
         e.preventDefault();
         const user = document.getElementById('log_user').value.trim().toLowerCase();
@@ -504,10 +475,10 @@
                 localStorage.setItem('reseller_user', user);
                 showDashboard();
             } else {
-                alert(data.msg || "Invalid User or Password!");
+                alert(data.msg || "Maling User ID o Password!");
             }
         } catch (err) {
-            alert("Server connect error! Check your network.");
+            alert("Nagkaroon ng problema sa koneksyon!");
         }
     }
 
@@ -521,13 +492,12 @@
     function showDashboard() {
         document.getElementById('loginView').style.display = 'none';
         document.getElementById('dashView').style.display = 'block';
-        document.getElementById('welcomeUser').innerText = `Logged in as @${currentUser.toUpperCase()}`;
+        document.getElementById('welcomeUser').innerText = `Naka-login bilang @${currentUser.toUpperCase()}`;
         onPlanChange();
         makeRandomKey();
         loadDashboard();
     }
 
-    // LOAD DATA
     async function loadDashboard() {
         if (!currentUser) return;
 
@@ -547,21 +517,21 @@
             const exp = data.expiry_timestamp || 0;
             if (exp > 0) {
                 const remDays = Math.ceil((exp - Date.now()) / (1000 * 60 * 60 * 24));
-                document.getElementById('statExpiry').innerText = `Valid: ${remDays} Din baaki (${new Date(exp).toLocaleDateString('en-GB')})`;
+                document.getElementById('statExpiry').innerText = `May natitirang ${remDays} araw (${new Date(exp).toLocaleDateString('en-GB')})`;
             } else {
-                document.getElementById('statExpiry').innerText = "Validity: Lifetime / Unlimited";
+                document.getElementById('statExpiry').innerText = "Katayuan: Lifetime / Walang Expiry";
             }
 
             renderKeys(keys);
         } catch (err) {
-            document.getElementById('keysContainer').innerHTML = '<div style="color:#EF4444; text-align:center; padding:20px;">Server se data load nahi ho saka. Refresh karein.</div>';
+            document.getElementById('keysContainer').innerHTML = '<div style="color:#EF4444; text-align:center; padding:20px;">Hindi mai-load ang data mula sa server. I-refresh ulit.</div>';
         }
     }
 
     function renderKeys(keys) {
         const container = document.getElementById('keysContainer');
         if (keys.length === 0) {
-            container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">Abhi tak koi key generate nahi hui hai.</div>';
+            container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">Wala pang nagagawang key sa ngayon.</div>';
             return;
         }
 
@@ -574,7 +544,7 @@
             let status = k.status || 'unused';
             if (isExp) status = 'expired';
 
-            const expStr = exp > 0 ? new Date(exp).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' }) : 'No Expiry';
+            const expStr = exp > 0 ? new Date(exp).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' }) : 'Walang Expiry';
 
             html += `
                 <div class="key-item">
@@ -584,13 +554,13 @@
                     </div>
                     <div class="key-info">
                         Plan: <span>${k.plan || 'Custom'}</span> | Expiry: <span>${expStr}</span><br>
-                        Device HWID: <span>${k.hwid ? k.hwid : 'Not Bound (Khali)'}</span>
+                        Device HWID: <span>${k.hwid ? k.hwid : 'Walang Naka-bind (Bukas)'}</span>
                     </div>
                     <div class="key-actions">
-                        <button class="btn-act btn-copy" onclick="copyKey('${k.key}')">📋 COPY</button>
-                        ${k.hwid ? `<button class="btn-act btn-hwid" onclick="resetHWID('${k.key}')">🔄 RESET HWID</button>` : ''}
-                        <button class="btn-act btn-edit" onclick="openEditModal('${k.key}', '${status}')">✏️ EDIT</button>
-                        <button class="btn-act btn-del" onclick="deleteKey('${k.key}')">🗑️ DELETE</button>
+                        <button class="btn-act btn-copy" onclick="copyKey('${k.key}')">📋 KOPYAHIN</button>
+                        ${k.hwid ? `<button class="btn-act btn-hwid" onclick="resetHWID('${k.key}')">🔄 I-RESET ANG HWID</button>` : ''}
+                        <button class="btn-act btn-edit" onclick="openEditModal('${k.key}', '${status}')">✏️ I-EDIT</button>
+                        <button class="btn-act btn-del" onclick="deleteKey('${k.key}')">🗑️ I-DELETE</button>
                     </div>
                 </div>
             `;
@@ -599,42 +569,17 @@
         container.innerHTML = html;
     }
 
-    // GENERATE KEY
     async function generateKey(e) {
         e.preventDefault();
         const key = document.getElementById('new_key').value.trim().toUpperCase();
         const plan = document.getElementById('plan_select').value;
         const cost = document.getElementById('key_cost').value;
-        const dtVal = document.getElementById('new_exp_datetime').value;
-
-        if (!dtVal) {
-            alert("Date & Time select karein!");
-            return;
-        }
-
-        const targetMs = new Date(dtVal).getTime();
-        if (targetMs <= Date.now()) {
-            alert("Aage ka (future) Date aur Time select karein!");
-            return;
-        }
-
-        let planName = "Custom Expiry";
-        if (plan === '7d') planName = "7 Days";
-        else if (plan === '15d') planName = "15 Days";
-        else if (plan === '30d') planName = "30 Days";
-        else {
-            const dateStr = new Date(targetMs).toLocaleDateString('en-GB');
-            const timeStr = new Date(targetMs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            planName = `Till ${dateStr} ${timeStr}`;
-        }
 
         const body = new URLSearchParams({
             username: currentUser,
             key: key,
             plan: plan,
-            cost: cost,
-            expiry_timestamp: targetMs,
-            plan_name: planName
+            cost: cost
         });
 
         try {
@@ -644,23 +589,23 @@
                 body: body
             });
             const data = await res.json();
-            alert(data.msg || (data.success ? `Key [${key}] generate ho gayi!` : 'Failed'));
+            alert(data.msg || (data.success ? `Matagumpay na nagawa ang key [${key}]!` : 'Nabigo'));
             if (data.success) {
                 makeRandomKey();
                 onPlanChange();
                 loadDashboard();
             }
         } catch (err) {
-            alert('Error generating key');
+            alert('Nagka-error habang gumagawa ng key');
         }
     }
 
     function copyKey(key) {
-        navigator.clipboard.writeText(key).then(() => alert("Key copied: " + key));
+        navigator.clipboard.writeText(key).then(() => alert("Kinopya ang key: " + key));
     }
 
     async function resetHWID(key) {
-        if (!confirm(`Key [${key}] ka Device HWID reset karein?`)) return;
+        if (!confirm(`Nais mo bang i-reset ang Device HWID para sa key [${key}]?`)) return;
 
         const body = new URLSearchParams({ username: currentUser, key: key, reset_hwid: 'true' });
         try {
@@ -670,15 +615,15 @@
                 body: body
             });
             const data = await res.json();
-            alert(data.msg || "HWID Reset Successful!");
+            alert(data.msg || "Matagumpay na na-reset ang HWID!");
             loadDashboard();
         } catch (err) {
-            alert("HWID Reset fail!");
+            alert("Nabigo ang pag-reset!");
         }
     }
 
     async function deleteKey(key) {
-        if (!confirm(`Kya aap key [${key}] ko permanently delete karna chahte hain?`)) return;
+        if (!confirm(`Sigurado ka bang nais mong permanenteng tanggalin ang key [${key}]?`)) return;
 
         const body = new URLSearchParams({ username: currentUser, key: key });
         try {
@@ -688,10 +633,10 @@
                 body: body
             });
             const data = await res.json();
-            alert(data.msg || "Deleted");
+            alert(data.msg || "Matagumpay na natanggal");
             loadDashboard();
         } catch (err) {
-            alert("Delete fail!");
+            alert("Nabigo ang pagbura!");
         }
     }
 
@@ -699,7 +644,6 @@
         editingKey = key;
         document.getElementById('editKeyName').innerText = key;
         document.getElementById('editStatus').value = (curStatus === 'expired') ? 'unused' : curStatus;
-        document.getElementById('editDatetime').value = '';
         document.getElementById('editModal').style.display = 'flex';
     }
 
@@ -710,21 +654,12 @@
 
     async function submitEditKey() {
         const st = document.getElementById('editStatus').value;
-        const dt = document.getElementById('editDatetime').value;
 
         const body = new URLSearchParams({
             username: currentUser,
             key: editingKey,
             status: st
         });
-
-        if (dt) {
-            const tMs = new Date(dt).getTime();
-            body.append('expiry_timestamp', tMs);
-            const dateStr = new Date(tMs).toLocaleDateString('en-GB');
-            const timeStr = new Date(tMs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            body.append('plan_name', `Till ${dateStr} ${timeStr}`);
-        }
 
         try {
             const res = await fetch(`${API_BASE}/reseller/edit_key`, {
@@ -733,11 +668,11 @@
                 body: body
             });
             const data = await res.json();
-            alert(data.msg || "Updated");
+            alert(data.msg || "Na-update");
             closeEditModal();
             loadDashboard();
         } catch (err) {
-            alert("Edit fail!");
+            alert("Nabigo ang pag-edit!");
         }
     }
 
