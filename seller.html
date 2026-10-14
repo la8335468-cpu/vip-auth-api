@@ -1,796 +1,614 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Seller Panel</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
-      -webkit-tap-highlight-color: transparent;
-    }
-    body {
-      background: #0b0c16;
-      color: #e2e8f0;
-      min-height: 100vh;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reseller Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0B0C16;
+            --card: #141727;
+            --card-inner: #0D0F1B;
+            --input: #0D0F1C;
+            --primary: #6366F1;
+            --primary-hover: #4F46E5;
+            --success: #10B981;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --text-main: #F8FAFC;
+            --text-muted: #94A3B8;
+            --border: #1E233D;
+        }
 
-    /* LOGIN SCREEN */
-    .login-container {
-      max-width: 380px;
-      margin: 90px auto 0;
-      padding: 24px;
-      background: #141727;
-      border: 1px solid #232845;
-      border-radius: 18px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-    }
-    .login-title {
-      font-size: 20px;
-      font-weight: 800;
-      color: #6366f1;
-      text-align: center;
-      margin-bottom: 20px;
-    }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
 
-    /* DASHBOARD */
-    .app-wrapper {
-      max-width: 480px;
-      margin: 0 auto;
-      padding: 16px;
-      padding-bottom: 90px;
-    }
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            padding: 20px 14px;
+            min-height: 100vh;
+        }
 
-    /* Header */
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 20px;
-    }
-    .header-left h1 {
-      font-size: 20px;
-      font-weight: 800;
-      color: #6366f1;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .header-left .time-text {
-      font-size: 11px;
-      color: #94a3b8;
-      margin-top: 4px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .user-pill {
-      background: #17192a;
-      border: 1px solid #282c47;
-      padding: 6px 12px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 600;
-      color: #cbd5e1;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .btn-logout {
-      background: transparent;
-      border: 1px solid #333857;
-      color: #ef4444;
-      padding: 6px 10px;
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      transition: all 0.2s;
-    }
-    .btn-logout:hover {
-      background: rgba(239, 68, 68, 0.1);
-    }
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+        }
 
-    /* 6 Stats Grid */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 22px;
-    }
-    .stat-card {
-      background: #141727;
-      border: 1px solid #1f233d;
-      border-radius: 14px;
-      padding: 16px 12px;
-      text-align: center;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-    }
-    .stat-val {
-      font-size: 22px;
-      font-weight: 800;
-      line-height: 1.2;
-    }
-    .stat-title {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.8px;
-      color: #94a3b8;
-      margin-top: 4px;
-      text-transform: uppercase;
-    }
+        .card {
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 22px;
+            margin-bottom: 20px;
+        }
 
-    .c-blue { color: #3b82f6; }
-    .c-purple { color: #a855f7; }
-    .c-green { color: #10b981; }
-    .c-red { color: #ef4444; }
-    .c-amber { color: #f59e0b; }
-    .c-slate { color: #94a3b8; }
+        .card-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 16px;
+            letter-spacing: 0.5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-    .section-title {
-      font-size: 14px;
-      font-weight: 700;
-      color: #94a3b8;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
+        /* Login Screen */
+        #loginBox {
+            max-width: 400px;
+            margin: 80px auto;
+        }
 
-    /* App Box */
-    .app-card {
-      background: #141727;
-      border: 1px solid #232845;
-      border-radius: 16px;
-      padding: 16px;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.3);
-    }
-    .app-info {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-    .app-name {
-      font-size: 15px;
-      font-weight: 800;
-      color: #fff;
-    }
-    .app-package {
-      font-size: 11px;
-      color: #818ba0;
-      margin-top: 2px;
-    }
+        .login-title {
+            font-size: 20px;
+            font-weight: 800;
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 24px;
+        }
 
-    .btn-generate {
-      width: 100%;
-      background: #16a34a;
-      color: #ffffff;
-      border: none;
-      padding: 12px;
-      border-radius: 10px;
-      font-weight: 700;
-      font-size: 14px;
-      cursor: pointer;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.2s;
-    }
-    .btn-generate:hover {
-      background: #22c55e;
-      box-shadow: 0 4px 14px rgba(34, 197, 94, 0.35);
-    }
+        /* Form Inputs */
+        .form-group {
+            margin-bottom: 14px;
+        }
 
-    /* Rates */
-    .rates-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 8px;
-      margin-top: 14px;
-    }
-    .rate-box {
-      background: #0d0f1b;
-      border: 1px solid #1c2035;
-      border-radius: 10px;
-      padding: 10px 6px;
-      text-align: center;
-    }
-    .rate-header {
-      font-size: 9px;
-      font-weight: 700;
-      color: #94a3b8;
-      letter-spacing: 0.5px;
-    }
-    .rate-price {
-      font-size: 13px;
-      font-weight: 800;
-      color: #facc15;
-      margin: 3px 0 1px;
-    }
-    .rate-period {
-      font-size: 9px;
-      color: #64748b;
-    }
+        label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
 
-    label.inp-label {
-      font-size: 11px;
-      font-weight: 700;
-      color: #94a3b8;
-      display: block;
-      margin-bottom: 5px;
-    }
-    input.inp-field, select.inp-field {
-      width: 100%;
-      background: #0d0f1c;
-      border: 1px solid #232742;
-      border-radius: 9px;
-      padding: 11px 12px;
-      color: #fff;
-      font-size: 13px;
-      outline: none;
-      margin-bottom: 14px;
-    }
+        input, select {
+            width: 100%;
+            background-color: var(--input);
+            border: 1px solid var(--border);
+            color: #fff;
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+        }
 
-    /* Bottom Navigation */
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: #101221;
-      border-top: 1px solid #1f233d;
-      padding: 8px 16px;
-      display: flex;
-      justify-content: center;
-      z-index: 100;
-    }
-    .nav-container {
-      width: 100%;
-      max-width: 480px;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-    }
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      font-size: 11px;
-      font-weight: 600;
-      color: #94a3b8;
-      background: transparent;
-      border: none;
-      padding: 8px 22px;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .nav-item.active {
-      background: #3b82f6;
-      color: #ffffff;
-      box-shadow: 0 2px 10px rgba(59, 130, 246, 0.4);
-    }
+        input:focus, select:focus {
+            border-color: var(--primary);
+        }
 
-    /* Modal */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0,0,0,0.8);
-      backdrop-filter: blur(4px);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      padding: 16px;
-      z-index: 999;
-    }
-    .modal-card {
-      background: #141727;
-      border: 1px solid #282d4d;
-      border-radius: 18px;
-      width: 100%;
-      max-width: 420px;
-      padding: 22px;
-    }
-    .plan-selector {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 6px;
-      margin-bottom: 14px;
-    }
-    .plan-btn {
-      background: #0d0f1c;
-      border: 1px solid #232742;
-      color: #cbd5e1;
-      padding: 8px 4px;
-      border-radius: 8px;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      text-align: center;
-    }
-    .plan-btn.selected {
-      background: #1e293b;
-      border-color: #3b82f6;
-      color: #38bdf8;
-    }
+        .btn {
+            width: 100%;
+            background-color: var(--primary);
+            color: #fff;
+            border: none;
+            padding: 13px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
 
-    /* Key Card Design */
-    .key-card {
-      background: #141727;
-      border: 1px solid #1f233d;
-      border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 10px;
-    }
-    .key-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .badge {
-      font-size: 10px;
-      font-weight: 800;
-      padding: 3px 8px;
-      border-radius: 999px;
-      text-transform: uppercase;
-    }
-    .badge-active { background: #064e3b; color: #34d399; }
-    .badge-unused { background: #451a03; color: #fbbf24; }
-    .badge-frozen { background: #1e293b; color: #94a3b8; }
-    .badge-expired { background: #4c0519; color: #fb7185; }
+        .btn:hover {
+            opacity: 0.9;
+        }
 
-    .key-actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 10px;
-      justify-content: flex-end;
-    }
-    .btn-act {
-      border: none;
-      padding: 5px 10px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    .btn-act-copy { background: #1e293b; color: #38bdf8; }
-    .btn-act-edit { background: #312e81; color: #a5b4fc; }
-    .btn-act-del { background: #3b1219; color: #f87171; }
-  </style>
+        .btn-success {
+            background-color: var(--success);
+        }
+
+        /* Dashboard Header */
+        .user-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--card-inner);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+        }
+
+        .user-header h2 {
+            font-size: 18px;
+            color: #60A5FA;
+        }
+
+        .balance-badge {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--success);
+            background: rgba(16, 185, 129, 0.15);
+            padding: 6px 14px;
+            border-radius: 8px;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        /* Grid */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        /* Key Items */
+        .key-item {
+            background-color: var(--card-inner);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .key-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .key-code {
+            font-size: 15px;
+            font-weight: 700;
+            color: #F8FAFC;
+            letter-spacing: 1px;
+            font-family: monospace;
+            background: #1e2238;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+
+        .badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+
+        .badge-unused { background: rgba(56, 189, 248, 0.15); color: #38BDF8; }
+        .badge-active { background: rgba(16, 185, 129, 0.15); color: #10B981; }
+        .badge-expired { background: rgba(239, 68, 68, 0.15); color: #EF4444; }
+        .badge-frozen { background: rgba(245, 158, 11, 0.15); color: #F59E0B; }
+
+        .key-details {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .key-details span {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .key-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .btn-small {
+            background-color: var(--border);
+            color: #fff;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-small.danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #EF4444;
+        }
+
+        .btn-small.warn {
+            background: rgba(245, 158, 11, 0.2);
+            color: #F59E0B;
+        }
+
+        .btn-small.copy {
+            background: rgba(99, 102, 241, 0.2);
+            color: #818CF8;
+        }
+
+        /* Custom Date box */
+        #customDateBox {
+            display: none;
+            background: #111424;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px dashed var(--primary);
+            margin-bottom: 14px;
+        }
+    </style>
 </head>
 <body>
 
-<!-- 1. RESELLER LOGIN VIEW -->
-<div class="login-container" id="loginBox">
-  <div class="login-title">SELLER LOGIN</div>
-  
-  <label class="inp-label">RESELLER USERNAME</label>
-  <input type="text" id="loginUser" class="inp-field" placeholder="Enter User ID">
+<div class="container">
 
-  <label class="inp-label">PASSWORD</label>
-  <input type="password" id="loginPass" class="inp-field" placeholder="Enter Password">
-
-  <button class="btn-generate" style="background: #3b82f6;" onclick="handleLogin()">LOGIN TO DASHBOARD</button>
-</div>
-
-<!-- 2. RESELLER DASHBOARD -->
-<div class="app-wrapper" id="dashboardBox" style="display: none;">
-
-  <!-- Header -->
-  <header class="header">
-    <div class="header-left">
-      <h1>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-        Seller Panel
-      </h1>
-      <div class="time-text">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-        <span id="liveClock">11 Oct 2026</span>
-      </div>
-    </div>
-    <div class="header-right">
-      <div class="user-pill">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-        <span id="displayUsername">User</span>
-      </div>
-      <button class="btn-logout" onclick="handleLogout()">Logout</button>
-    </div>
-  </header>
-
-  <!-- 6 STATS CARDS -->
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-val c-blue">1</div>
-      <div class="stat-title">TOTAL APPS</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-val c-purple" id="valTotalKeys">0</div>
-      <div class="stat-title">TOTAL KEYS</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-val c-green" id="valActive">0</div>
-      <div class="stat-title">ACTIVE</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-val c-red" id="valExpired">0</div>
-      <div class="stat-title">EXPIRED</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-val c-amber" id="valUnused">0</div>
-      <div class="stat-title">UNUSED</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-val c-slate" id="valFrozen">0</div>
-      <div class="stat-title">FROZEN</div>
-    </div>
-  </div>
-
-  <!-- TAB: APPS -->
-  <div id="tabApps">
-    <div class="section-title">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
-      Apps (1)
+    <!-- LOGIN SCREEN -->
+    <div id="loginSection" class="card" style="max-width: 420px; margin: 60px auto;">
+        <h2 class="login-title">RESELLER LOGIN</h2>
+        <form onsubmit="doLogin(event)">
+            <div class="form-group">
+                <label>User ID</label>
+                <input type="text" id="login_user" placeholder="Enter reseller ID" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="login_pass" placeholder="Enter password" required>
+            </div>
+            <button type="submit" class="btn" style="margin-top: 10px;">LOGIN TO PANEL</button>
+        </form>
     </div>
 
-    <!-- APP CARD -->
-    <div class="app-card">
-      <div class="app-info">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
-        <div>
-          <div class="app-name">NMMS</div>
-          <div class="app-package">com.dord.nmms</div>
+    <!-- MAIN PANEL DASHBOARD -->
+    <div id="dashboardSection" style="display: none;">
+        
+        <!-- Header Info -->
+        <div class="user-header">
+            <div>
+                <h2 id="dispUsername">RESELLER</h2>
+                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;" id="dispExpiry">Valid Till: --</div>
+            </div>
+            <div style="text-align: right;">
+                <div class="balance-badge" id="dispBalance">₹0.00</div>
+                <button onclick="logout()" style="background: none; border: none; color: #EF4444; font-size: 11px; font-weight: 700; cursor: pointer; margin-top: 6px;">LOGOUT</button>
+            </div>
         </div>
-      </div>
 
-      <button class="btn-generate" onclick="openKeyModal()">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M21 2l-2 2m-1.5 6.1L16 11l-4-4 2-2 1.5 1.5M7 13l-4 4v4h4l4-4M10 10l4 4"/></svg>
-        Generate Key
-      </button>
+        <!-- Create Key Card -->
+        <div class="card">
+            <div class="card-title">
+                <span>GENERATE VIP KEY</span>
+                <button type="button" class="btn-small copy" onclick="generateRandomKeyString()">RANDOM KEY</button>
+            </div>
 
-      <!-- RATES -->
-      <div class="rates-row">
-        <div class="rate-box">
-          <div class="rate-header">🔑 HOUR RATE</div>
-          <div class="rate-price">₹5.00</div>
-          <div class="rate-period">/ hour</div>
+            <form onsubmit="generateKey(event)">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>License Key</label>
+                        <input type="text" id="new_key" placeholder="VIP-XXXX-XXXX" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Plan Type / Validity</label>
+                        <select id="plan_type" onchange="onPlanChange()">
+                            <option value="1h" data-cost="10">1 Hour (₹10)</option>
+                            <option value="1d" data-cost="40" selected>1 Day (₹40)</option>
+                            <option value="1m" data-cost="350">1 Month (30 Days) (₹350)</option>
+                            <option value="custom" data-cost="50">📅 Select Date & Time (Custom)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Deduction Cost (₹)</label>
+                        <input type="number" id="key_cost" value="40" required>
+                    </div>
+                </div>
+
+                <!-- Custom Date & Time Picker (Jab Custom select ho tabhi dikhega) -->
+                <div id="customDateBox">
+                    <label style="color: #60A5FA; font-weight: 600;">Select Expiry Date & Exact Time:</label>
+                    <input type="datetime-local" id="custom_datetime" onchange="calculateCustomDuration()">
+                    <div id="datePreviewText" style="font-size: 12px; color: #34D399; margin-top: 6px;"></div>
+                </div>
+
+                <button type="submit" class="btn btn-success">CREATE LICENSE KEY</button>
+            </form>
         </div>
-        <div class="rate-box">
-          <div class="rate-header">🔑 DAY RATE</div>
-          <div class="rate-price">₹40.00</div>
-          <div class="rate-period">/ day</div>
+
+        <!-- Keys List Card -->
+        <div class="card">
+            <div class="card-title">
+                <span>GENERATED KEYS</span>
+                <button class="btn-small" onclick="loadDashboard()">REFRESH</button>
+            </div>
+            <div id="keysContainer">
+                <div style="text-align: center; color: var(--text-muted); padding: 20px;">Loading keys...</div>
+            </div>
         </div>
-        <div class="rate-box">
-          <div class="rate-header">🔑 MONTH RATE</div>
-          <div class="rate-price">₹1,200.00</div>
-          <div class="rate-period">/ month</div>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- TAB: KEYS -->
-  <div id="tabKeys" style="display: none;">
-    <div class="section-title" style="justify-content: space-between;">
-      <span>Generated Keys List</span>
-      <button onclick="loadResellerData()" style="background:#1e233d; border:none; color:#38bdf8; font-size:11px; padding:4px 8px; border-radius:6px; cursor:pointer;">Refresh</button>
-    </div>
-    <div id="keysContainer"></div>
-  </div>
-
-  <!-- TAB: BALANCE -->
-  <div id="tabBalance" style="display: none;">
-    <div class="section-title">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
-      Wallet & Validity
-    </div>
-    <div class="app-card" style="text-align: center;">
-      <div style="font-size: 12px; color: #94a3b8;">AVAILABLE WALLET BALANCE</div>
-      <div style="font-size: 32px; font-weight: 800; color: #22c55e; margin: 6px 0;" id="walletBalance">₹0.00</div>
-      <div style="font-size: 12px; color: #60a5fa; margin-top: 8px;" id="validityStatus">Checking Validity...</div>
-      <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Recharge / Validity ke liye Master Admin se contact karein</div>
-    </div>
-  </div>
-
-  <!-- BOTTOM FLOATING NAV -->
-  <nav class="bottom-nav">
-    <div class="nav-container">
-      <button class="nav-item active" id="btnNavApps" onclick="switchTab('apps')">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
-        Apps
-      </button>
-      <button class="nav-item" id="btnNavKeys" onclick="switchTab('keys')">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-1.5 6.1L16 11l-4-4 2-2 1.5 1.5M7 13l-4 4v4h4l4-4M10 10l4 4"/></svg>
-        Keys
-      </button>
-      <button class="nav-item" id="btnNavBalance" onclick="switchTab('balance')">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
-        Balance
-      </button>
-    </div>
-  </nav>
-
-</div>
-
-<!-- KEY GENERATION MODAL -->
-<div class="modal-overlay" id="keyModal">
-  <div class="modal-card">
-    <div style="font-size: 16px; font-weight: 800; margin-bottom: 14px;">Generate NMMS Key</div>
-
-    <label class="inp-label">CHOOSE PLAN</label>
-    <div class="plan-selector">
-      <div class="plan-btn" onclick="selectPlan('1h', 5, this)">1 Hour (₹5)</div>
-      <div class="plan-btn selected" onclick="selectPlan('1d', 40, this)">1 Day (₹40)</div>
-      <div class="plan-btn" onclick="selectPlan('1m', 1200, this)">1 Month (₹1.2k)</div>
     </div>
 
-    <label class="inp-label">CUSTOM KEY (OPTIONAL)</label>
-    <input type="text" id="custKey" class="inp-field" placeholder="Leave empty for auto-key">
-
-    <div style="display: flex; gap: 8px;">
-      <button style="flex:1; background:#1e233d; color:#fff; border:none; padding:12px; border-radius:8px; font-weight:700;" onclick="closeKeyModal()">Cancel</button>
-      <button class="btn-generate" style="flex:2;" onclick="confirmGenerate()">Confirm & Pay</button>
-    </div>
-  </div>
-</div>
-
-<!-- KEY EDIT MODAL -->
-<div class="modal-overlay" id="editModal">
-  <div class="modal-card">
-    <div style="font-size: 16px; font-weight: 800; margin-bottom: 14px;">Edit License Key</div>
-
-    <label class="inp-label">KEY</label>
-    <input type="text" id="editKeyDisplay" class="inp-field" readonly style="opacity: 0.7;">
-
-    <label class="inp-label">CHANGE STATUS</label>
-    <select id="editStatusSelect" class="inp-field">
-      <option value="unused">UNUSED</option>
-      <option value="active">ACTIVE</option>
-      <option value="frozen">FROZEN (LOCKED)</option>
-    </select>
-
-    <label class="inp-label">CHANGE PLAN</label>
-    <select id="editPlanSelect" class="inp-field">
-      <option value="">(Keep Same Validity)</option>
-      <option value="1h">1 Hour</option>
-      <option value="1d">1 Day</option>
-      <option value="1m">1 Month</option>
-    </select>
-
-    <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
-      <input type="checkbox" id="chkResetHwid" style="width: 18px; height: 18px; cursor: pointer;">
-      <label for="chkResetHwid" style="font-size: 12px; color: #facc15; font-weight: 700; cursor: pointer;">Reset Device ID (Unbind HWID)</label>
-    </div>
-
-    <div style="display: flex; gap: 8px;">
-      <button style="flex:1; background:#1e233d; color:#fff; border:none; padding:12px; border-radius:8px; font-weight:700;" onclick="closeEditModal()">Cancel</button>
-      <button class="btn-generate" style="flex:2; background:#4f46e5;" onclick="confirmEditKey()">Save Changes</button>
-    </div>
-  </div>
 </div>
 
 <script>
-  const API_URL = "https://vip-auth-api-1.onrender.com";
-  let activeUser = localStorage.getItem("reseller_user") || "";
-  let currentCost = 40;
-  let currentPlan = '1d';
-  let editingKey = "";
+    let currentUser = localStorage.getItem('reseller_user') || '';
 
-  function updateClock() {
-    const d = new Date();
-    const opts = { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true };
-    document.getElementById('liveClock').innerText = d.toLocaleDateString('en-GB', opts).replace(',', '');
-  }
-  setInterval(updateClock, 1000);
-  updateClock();
+    function onPlanChange() {
+        const select = document.getElementById('plan_type');
+        const customBox = document.getElementById('customDateBox');
+        const costInput = document.getElementById('key_cost');
 
-  function handleLogin() {
-    const u = document.getElementById("loginUser").value.trim().toLowerCase();
-    const p = document.getElementById("loginPass").value.trim();
+        const opt = select.options[select.selectedIndex];
+        costInput.value = opt.getAttribute('data-cost') || 40;
 
-    if (!u || !p) return alert("Username aur Password fill karein!");
-
-    fetch(`${API_URL}/reseller/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: `username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`
-    })
-    .then(r => r.json())
-    .then(res => {
-      if (res.success) {
-        localStorage.setItem("reseller_user", u);
-        activeUser = u;
-        showDashboard();
-      } else {
-        alert(res.msg);
-      }
-    })
-    .catch(() => alert("Server connection failed!"));
-  }
-
-  function handleLogout() {
-    localStorage.removeItem("reseller_user");
-    activeUser = "";
-    document.getElementById("dashboardBox").style.display = "none";
-    document.getElementById("loginBox").style.display = "block";
-    document.getElementById("loginUser").value = "";
-    document.getElementById("loginPass").value = "";
-  }
-
-  function showDashboard() {
-    document.getElementById("loginBox").style.display = "none";
-    document.getElementById("dashboardBox").style.display = "block";
-    document.getElementById("displayUsername").innerText = activeUser.toUpperCase();
-    loadResellerData();
-  }
-
-  function loadResellerData() {
-    fetch(`${API_URL}/reseller/data?username=${activeUser}`)
-    .then(r => r.json())
-    .then(data => {
-      if (!data.success) return handleLogout();
-
-      document.getElementById("walletBalance").innerText = "₹" + parseFloat(data.balance).toFixed(2);
-      
-      const now = Date.now();
-      if (data.expiry_timestamp > 0) {
-        const remDays = Math.ceil((data.expiry_timestamp - now) / (1000 * 60 * 60 * 24));
-        document.getElementById("validityStatus").innerText = `Account Validity: ${remDays} Din Baaki (${new Date(data.expiry_timestamp).toLocaleDateString('en-GB')})`;
-      } else {
-        document.getElementById("validityStatus").innerText = `Account Validity: Lifetime Active`;
-      }
-
-      const keys = data.keys || [];
-      document.getElementById("valTotalKeys").innerText = keys.length;
-      let act=0, un=0, fr=0, exp=0;
-      keys.forEach(k => {
-        if (k.status === 'active') act++;
-        else if (k.status === 'unused') un++;
-        else if (k.status === 'frozen') fr++;
-        else if (k.status === 'expired') exp++;
-      });
-      document.getElementById("valActive").innerText = act;
-      document.getElementById("valUnused").innerText = un;
-      document.getElementById("valFrozen").innerText = fr;
-      document.getElementById("valExpired").innerText = exp;
-
-      const kc = document.getElementById("keysContainer");
-      if (keys.length === 0) {
-        kc.innerHTML = `<div style="text-align:center; color:#64748b; font-size:12px; padding:30px;">Koi key generate nahi hui hai.</div>`;
-      } else {
-        kc.innerHTML = keys.map(k => `
-          <div class="key-card">
-            <div class="key-header">
-              <span style="font-weight:700; color:#fff;">${k.key}</span>
-              <span class="badge badge-${k.status}">${k.status}</span>
-            </div>
-            <div style="font-size:11px; color:#818ba0; margin-top:4px;">
-              Plan: ${k.plan} | HWID: ${k.hwid || 'Auto-bind'}
-            </div>
-            <div class="key-actions">
-              <button class="btn-act btn-act-copy" onclick="copyKey('${k.key}')">Copy</button>
-              <button class="btn-act btn-act-edit" onclick="openEditModal('${k.key}', '${k.status}')">Edit</button>
-              <button class="btn-act btn-act-del" onclick="deleteKey('${k.key}')">Delete</button>
-            </div>
-          </div>
-        `).join('');
-      }
-    });
-  }
-
-  function selectPlan(p, cost, el) {
-    document.querySelectorAll('.plan-btn').forEach(b => b.classList.remove('selected'));
-    el.classList.add('selected');
-    currentPlan = p;
-    currentCost = cost;
-  }
-
-  function openKeyModal() { document.getElementById("keyModal").style.display = "flex"; }
-  function closeKeyModal() { document.getElementById("keyModal").style.display = "none"; }
-
-  function confirmGenerate() {
-    let key = document.getElementById("custKey").value.trim().toUpperCase();
-    if (!key) {
-      key = "VIP-" + Math.random().toString(36).substring(2, 6).toUpperCase() + "-" + Math.random().toString(36).substring(2, 6).toUpperCase();
+        if (select.value === 'custom') {
+            customBox.style.display = 'block';
+            
+            // Default 24 hours from now set karein
+            const now = new Date();
+            now.setDate(now.getDate() + 1);
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('custom_datetime').value = now.toISOString().slice(0, 16);
+            calculateCustomDuration();
+        } else {
+            customBox.style.display = 'none';
+        }
     }
 
-    fetch(`${API_URL}/reseller/generate_key`, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: `username=${activeUser}&key=${key}&plan=${currentPlan}&cost=${currentCost}`
-    })
-    .then(r => r.json())
-    .then(res => {
-      if (res.success) {
-        alert("Key Generated: " + res.key);
-        closeKeyModal();
-        loadResellerData();
-      } else {
-        alert(res.msg);
-      }
-    });
-  }
+    function calculateCustomDuration() {
+        const dtVal = document.getElementById('custom_datetime').value;
+        if (!dtVal) return;
 
-  function openEditModal(key, currentStatus) {
-    editingKey = key;
-    document.getElementById("editKeyDisplay").value = key;
-    document.getElementById("editStatusSelect").value = currentStatus;
-    document.getElementById("editPlanSelect").value = "";
-    document.getElementById("chkResetHwid").checked = false;
-    document.getElementById("editModal").style.display = "flex";
-  }
+        const target = new Date(dtVal).getTime();
+        const diffMs = target - Date.now();
 
-  function closeEditModal() {
-    document.getElementById("editModal").style.display = "none";
-  }
+        if (diffMs <= 0) {
+            document.getElementById('datePreviewText').innerHTML = "<span style='color: #EF4444;'>Galat: Aane wale samay (future) ka date & time select karein!</span>";
+            return;
+        }
 
-  function confirmEditKey() {
-    const status = document.getElementById("editStatusSelect").value;
-    const plan = document.getElementById("editPlanSelect").value;
-    const resetHwid = document.getElementById("chkResetHwid").checked;
+        const hours = (diffMs / (1000 * 60 * 60)).toFixed(1);
+        const days = (diffMs / (1000 * 60 * 60 * 24)).toFixed(1);
 
-    fetch(`${API_URL}/reseller/edit_key`, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: `username=${activeUser}&key=${editingKey}&status=${status}&plan=${plan}&reset_hwid=${resetHwid}`
-    })
-    .then(r => r.json())
-    .then(res => {
-      alert(res.msg);
-      closeEditModal();
-      loadResellerData();
-    });
-  }
+        document.getElementById('datePreviewText').innerHTML = `⏱️ Total Validity: <b>${days} Din</b> (${hours} Ghante)`;
+    }
 
-  function deleteKey(key) {
-    if (!confirm(`Delete key permanently: ${key}?`)) return;
+    function generateRandomKeyString() {
+        const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        let r1 = "", r2 = "";
+        for (let i = 0; i < 4; i++) r1 += chars.charAt(Math.floor(Math.random() * chars.length));
+        for (let i = 0; i < 4; i++) r2 += chars.charAt(Math.floor(Math.random() * chars.length));
+        document.getElementById('new_key').value = "VIP-" + r1 + "-" + r2;
+    }
 
-    fetch(`${API_URL}/reseller/delete_key`, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: `username=${activeUser}&key=${key}`
-    })
-    .then(r => r.json())
-    .then(res => {
-      alert(res.msg);
-      loadResellerData();
-    });
-  }
+    async function doLogin(e) {
+        e.preventDefault();
+        const user = document.getElementById('login_user').value.trim().toLowerCase();
+        const pwd = document.getElementById('login_pass').value.trim();
 
-  function copyKey(k) {
-    navigator.clipboard.writeText(k).then(() => alert("Key Copied!"));
-  }
+        const body = new URLSearchParams({ username: user, password: pwd });
 
-  function switchTab(t) {
-    document.getElementById('tabApps').style.display = (t === 'apps') ? 'block' : 'none';
-    document.getElementById('tabKeys').style.display = (t === 'keys') ? 'block' : 'none';
-    document.getElementById('tabBalance').style.display = (t === 'balance') ? 'block' : 'none';
-    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-    document.getElementById('btnNav' + t.charAt(0).toUpperCase() + t.slice(1)).classList.add('active');
-  }
+        try {
+            const res = await fetch('/reseller/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body
+            });
+            const data = await res.json();
+            if (data.success) {
+                currentUser = user;
+                localStorage.setItem('reseller_user', user);
+                showDashboard();
+            } else {
+                alert(data.msg || "Login Failed!");
+            }
+        } catch (err) {
+            alert("Server connection error!");
+        }
+    }
 
-  if (activeUser) {
-    showDashboard();
-  }
+    function logout() {
+        localStorage.removeItem('reseller_user');
+        currentUser = '';
+        document.getElementById('loginSection').style.display = 'block';
+        document.getElementById('dashboardSection').style.display = 'none';
+    }
+
+    function showDashboard() {
+        document.getElementById('loginSection').style.display = 'none';
+        document.getElementById('dashboardSection').style.display = 'block';
+        document.getElementById('dispUsername').innerText = currentUser.toUpperCase();
+        generateRandomKeyString();
+        loadDashboard();
+    }
+
+    async function loadDashboard() {
+        if (!currentUser) return;
+
+        try {
+            const res = await fetch(`/reseller/data?username=${encodeURIComponent(currentUser)}`);
+            const data = await res.json();
+
+            if (!data.success) {
+                logout();
+                return;
+            }
+
+            document.getElementById('dispBalance').innerText = `₹${(data.balance || 0).toFixed(2)}`;
+            
+            const exp = data.expiry_timestamp || 0;
+            if (exp > 0) {
+                const remDays = Math.ceil((exp - Date.now()) / (1000 * 60 * 60 * 24));
+                document.getElementById('dispExpiry').innerText = `Valid: ${remDays} Din baaki (${new Date(exp).toLocaleDateString('en-GB')})`;
+            } else {
+                document.getElementById('dispExpiry').innerText = "Validity: Lifetime / Unlimited";
+            }
+
+            renderKeys(data.keys || []);
+        } catch (err) {
+            document.getElementById('keysContainer').innerHTML = '<div style="color:red; text-align:center;">Load fail hua. Refresh karein.</div>';
+        }
+    }
+
+    function renderKeys(keys) {
+        const container = document.getElementById('keysContainer');
+        if (keys.length === 0) {
+            container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">Koi key generate nahi hui hai.</div>';
+            return;
+        }
+
+        const now = Date.now();
+        let html = '';
+
+        keys.forEach(k => {
+            const exp = k.expiry_timestamp || 0;
+            const isExp = exp > 0 && now > exp;
+            let status = k.status || 'unused';
+            if (isExp) status = 'expired';
+
+            const expDateFormatted = exp > 0 ? new Date(exp).toLocaleString('en-GB') : 'No Expiry';
+
+            html += `
+                <div class="key-item">
+                    <div class="key-header">
+                        <span class="key-code">${k.key}</span>
+                        <span class="badge badge-${status}">${status.toUpperCase()}</span>
+                    </div>
+                    <div class="key-details">
+                        Plan: <span>${k.plan || 'Custom'}</span><br>
+                        Expiry: <span>${expDateFormatted}</span><br>
+                        Device (HWID): <span>${k.hwid ? k.hwid.slice(0, 16) + '...' : 'Not Bound (Khali)'}</span>
+                    </div>
+                    <div class="key-actions">
+                        <button class="btn-small copy" onclick="copyKey('${k.key}')">📋 COPY</button>
+                        ${k.hwid ? `<button class="btn-small warn" onclick="resetHWID('${k.key}')">RESET HWID</button>` : ''}
+                        <button class="btn-small danger" onclick="deleteKey('${k.key}')">DELETE</button>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    async function generateKey(e) {
+        e.preventDefault();
+        const key = document.getElementById('new_key').value.trim().toUpperCase();
+        const plan = document.getElementById('plan_type').value;
+        const cost = document.getElementById('key_cost').value;
+
+        const params = new URLSearchParams({
+            username: currentUser,
+            key: key,
+            plan: plan,
+            cost: cost
+        });
+
+        // Agar Custom Date & Time chuna hai toh timestamp calculate karke bhejein
+        if (plan === 'custom') {
+            const dtInput = document.getElementById('custom_datetime').value;
+            if (!dtInput) {
+                alert("Date aur Time select karein!");
+                return;
+            }
+            const targetMs = new Date(dtInput).getTime();
+            if (targetMs <= Date.now()) {
+                alert("Aage ka Date & Time select karein!");
+                return;
+            }
+
+            params.append('expiry_timestamp', targetMs);
+            const dateStr = new Date(targetMs).toLocaleDateString('en-GB');
+            const timeStr = new Date(targetMs).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            params.append('plan_name', `Till ${dateStr} ${timeStr}`);
+        }
+
+        try {
+            const res = await fetch('/reseller/generate_key', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: params
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(`Key [${key}] generate ho gayi!`);
+                generateRandomKeyString();
+                loadDashboard();
+            } else {
+                alert(data.msg || "Key generation failed!");
+            }
+        } catch (err) {
+            alert("Error generating key");
+        }
+    }
+
+    function copyKey(key) {
+        navigator.clipboard.writeText(key).then(() => {
+            alert("Key copied: " + key);
+        });
+    }
+
+    async function resetHWID(key) {
+        if (!confirm(`Kya aap key [${key}] ka Device/HWID reset karna chahte hain?`)) return;
+
+        const body = new URLSearchParams({
+            username: currentUser,
+            key: key,
+            reset_hwid: 'true'
+        });
+
+        try {
+            const res = await fetch('/reseller/edit_key', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body
+            });
+            const data = await res.json();
+            alert(data.msg || "Updated");
+            loadDashboard();
+        } catch (err) {
+            alert("Reset fail!");
+        }
+    }
+
+    async function deleteKey(key) {
+        if (!confirm(`Kya aap key [${key}] ko delete karna chahte hain?`)) return;
+
+        const body = new URLSearchParams({
+            username: currentUser,
+            key: key
+        });
+
+        try {
+            const res = await fetch('/reseller/delete_key', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body
+            });
+            const data = await res.json();
+            alert(data.msg || "Deleted");
+            loadDashboard();
+        } catch (err) {
+            alert("Delete fail!");
+        }
+    }
+
+    // Check login state
+    if (currentUser) {
+        showDashboard();
+    }
 </script>
 
 </body>
