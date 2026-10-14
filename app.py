@@ -46,13 +46,13 @@ def fb_delete(endpoint):
 def seller_page():
     if os.path.exists('seller.html'):
         return send_file('seller.html')
-    return "Error: seller.html missing", 404
+    return "Error: seller.html missing in repo", 404
 
 @app.route('/admin')
 def admin_page():
     if os.path.exists('admin.html'):
         return send_file('admin.html')
-    return "Error: admin.html missing", 404
+    return "Error: admin.html missing in repo", 404
 
 
 # --- MASTER ADMIN APIS ---
@@ -78,7 +78,7 @@ def create_reseller():
 
     if fb_put(f"resellers/{user}", data):
         return jsonify({"success": True, "msg": f"Reseller [{user}] successfully create ho gaya!"})
-    return jsonify({"success": False, "msg": "Firebase write fail! Check Firebase Rules."}), 500
+    return jsonify({"success": False, "msg": "Firebase write fail!"}), 500
 
 @app.route('/admin/get_resellers', methods=['GET'])
 def get_resellers():
@@ -86,12 +86,12 @@ def get_resellers():
     if not resellers_raw:
         return jsonify([])
 
-    resellers_list = []
-    # Agar text keys hain to Dict aayegi, agar number keys hain to List aayegi
     if isinstance(resellers_raw, dict):
         resellers_list = list(resellers_raw.values())
     elif isinstance(resellers_raw, list):
         resellers_list = [item for item in resellers_raw if item is not None and isinstance(item, dict)]
+    else:
+        resellers_list = []
 
     return jsonify(resellers_list)
 
@@ -172,13 +172,23 @@ def reseller_generate_key():
     key = request.form.get('key', '').strip().upper()
     plan = request.form.get('plan', '1d')
     cost = float(request.form.get('cost', 40.0))
+    custom_exp = request.form.get('expiry_timestamp', '').strip()
+    custom_plan_name = request.form.get('plan_name', '').strip()
 
     reseller = fb_get(f"resellers/{user}")
     if not reseller or not isinstance(reseller, dict) or float(reseller.get('balance', 0.0)) < cost:
-        return jsonify({"success": False, "msg": "Balance kam hai! Wallet recharge karein."}), 400
+        return jsonify({"success": False, "msg": "Balance kam hai! Wallet recharge karwayen."}), 400
 
     now = int(time.time() * 1000)
-    if plan == '1h':
+
+    # Date & Time picker support
+    if custom_exp:
+        try:
+            exp = int(custom_exp)
+            plan_name = custom_plan_name if custom_plan_name else "Custom Expiry"
+        except Exception:
+            return jsonify({"success": False, "msg": "Invalid Date/Time!"}), 400
+    elif plan == '1h':
         exp = now + (3600 * 1000)
         plan_name = "1 Hour"
     elif plan == '1d':
@@ -187,6 +197,9 @@ def reseller_generate_key():
     else:
         exp = now + (30 * 24 * 3600 * 1000)
         plan_name = "1 Month"
+
+    if exp <= now:
+        return jsonify({"success": False, "msg": "Expiry date aane wale samay (future) ki honi chahiye!"}), 400
 
     new_bal = float(reseller.get('balance', 0.0)) - cost
     fb_patch(f"resellers/{user}", {"balance": new_bal})
@@ -210,6 +223,8 @@ def reseller_edit_key():
     key = request.form.get('key', '').strip().upper()
     status = request.form.get('status', '').strip()
     plan = request.form.get('plan', '').strip()
+    custom_exp = request.form.get('expiry_timestamp', '').strip()
+    custom_plan_name = request.form.get('plan_name', '').strip()
     reset_hwid = str(request.form.get('reset_hwid', '')).lower() == 'true'
 
     key_obj = fb_get(f"keys/{key}")
@@ -220,7 +235,13 @@ def reseller_edit_key():
     exp = key_obj.get('expiry_timestamp', 0)
     plan_name = key_obj.get('plan', '1 Day')
 
-    if plan:
+    if custom_exp:
+        try:
+            exp = int(custom_exp)
+            plan_name = custom_plan_name if custom_plan_name else "Custom Expiry"
+        except Exception:
+            pass
+    elif plan:
         if plan == '1h':
             exp = now + (3600 * 1000)
             plan_name = "1 Hour"
@@ -240,7 +261,7 @@ def reseller_edit_key():
         updates["hwid"] = ""
 
     if fb_patch(f"keys/{key}", updates):
-        return jsonify({"success": True, "msg": "Key successfully update ho gayi!"})
+        return jsonify({"success": True, "msg": "Key update ho gayi!"})
     return jsonify({"success": False, "msg": "Key update fail!"}), 500
 
 @app.route('/reseller/delete_key', methods=['POST'])
