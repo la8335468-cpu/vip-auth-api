@@ -12,10 +12,8 @@
             --card-inner: #0D0F1B;
             --input: #0D0F1C;
             --primary: #6366F1;
-            --primary-hover: #4F46E5;
             --success: #10B981;
             --danger: #EF4444;
-            --warning: #F59E0B;
             --text-main: #F8FAFC;
             --text-muted: #94A3B8;
             --border: #1E233D;
@@ -31,13 +29,38 @@
         body {
             background-color: var(--bg);
             color: var(--text-main);
-            padding: 20px 14px;
+            padding: 24px 16px;
             min-height: 100vh;
         }
 
         .container {
-            max-width: 850px;
+            max-width: 900px;
             margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            color: var(--primary);
+        }
+
+        .btn-refresh {
+            background-color: var(--border);
+            color: #38BDF8;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
         }
 
         .card {
@@ -45,40 +68,28 @@
             border: 1px solid var(--border);
             border-radius: 14px;
             padding: 22px;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         .card-title {
             font-size: 14px;
             font-weight: 700;
             color: var(--primary);
-            margin-bottom: 16px;
+            margin-bottom: 18px;
             letter-spacing: 0.5px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        /* Login Screen */
-        #loginBox {
-            max-width: 400px;
-            margin: 80px auto;
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+            margin-bottom: 16px;
         }
 
-        .login-title {
-            font-size: 20px;
-            font-weight: 800;
-            text-align: center;
-            color: var(--primary);
-            margin-bottom: 24px;
-        }
-
-        /* Form Inputs */
-        .form-group {
-            margin-bottom: 14px;
-        }
-
-        label {
+        .input-group label {
             display: block;
             font-size: 12px;
             color: var(--text-muted);
@@ -86,7 +97,7 @@
             font-weight: 500;
         }
 
-        input, select {
+        .input-group input {
             width: 100%;
             background-color: var(--input);
             border: 1px solid var(--border);
@@ -95,18 +106,19 @@
             border-radius: 8px;
             font-size: 14px;
             outline: none;
+            color-scheme: dark;
         }
 
-        input:focus, select:focus {
+        .input-group input:focus {
             border-color: var(--primary);
         }
 
-        .btn {
+        .btn-submit {
             width: 100%;
-            background-color: var(--primary);
+            background-color: var(--success);
             color: #fff;
             border: none;
-            padding: 13px;
+            padding: 14px;
             border-radius: 8px;
             font-size: 14px;
             font-weight: 700;
@@ -114,74 +126,33 @@
             transition: 0.2s;
         }
 
-        .btn:hover {
+        .btn-submit:hover {
             opacity: 0.9;
         }
 
-        .btn-success {
-            background-color: var(--success);
-        }
-
-        /* Dashboard Header */
-        .user-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: var(--card-inner);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 16px 20px;
-            margin-bottom: 20px;
-        }
-
-        .user-header h2 {
-            font-size: 18px;
-            color: #60A5FA;
-        }
-
-        .balance-badge {
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--success);
-            background: rgba(16, 185, 129, 0.15);
-            padding: 6px 14px;
-            border-radius: 8px;
-            border: 1px solid rgba(16, 185, 129, 0.3);
-        }
-
-        /* Grid */
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 12px;
-            margin-bottom: 14px;
-        }
-
-        /* Key Items */
         .key-item {
             background-color: var(--card-inner);
             border: 1px solid var(--border);
             border-radius: 10px;
-            padding: 16px;
-            margin-bottom: 12px;
+            padding: 16px 18px;
+            margin-bottom: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
-        .key-header {
+        .item-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
         }
 
-        .key-code {
-            font-size: 15px;
+        .key-name {
+            font-size: 16px;
             font-weight: 700;
-            color: #F8FAFC;
-            letter-spacing: 1px;
+            color: #60A5FA;
             font-family: monospace;
-            background: #1e2238;
-            padding: 4px 8px;
-            border-radius: 6px;
+            letter-spacing: 0.5px;
         }
 
         .badge {
@@ -192,200 +163,125 @@
         }
 
         .badge-unused { background: rgba(56, 189, 248, 0.15); color: #38BDF8; }
-        .badge-active { background: rgba(16, 185, 129, 0.15); color: #10B981; }
-        .badge-expired { background: rgba(239, 68, 68, 0.15); color: #EF4444; }
+        .badge-active { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+        .badge-expired { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
         .badge-frozen { background: rgba(245, 158, 11, 0.15); color: #F59E0B; }
 
-        .key-details {
-            font-size: 12px;
+        .item-details {
+            font-size: 13px;
             color: var(--text-muted);
             line-height: 1.6;
         }
 
-        .key-details span {
-            color: #fff;
+        .item-details span {
+            color: var(--text-main);
             font-weight: 600;
         }
 
-        .key-actions {
+        .item-actions {
             display: flex;
             justify-content: flex-end;
-            gap: 8px;
-            margin-top: 10px;
+            gap: 10px;
+            margin-top: 6px;
         }
 
-        .btn-small {
-            background-color: var(--border);
-            color: #fff;
+        .btn-action {
             border: none;
-            padding: 6px 12px;
+            padding: 7px 14px;
             border-radius: 6px;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 700;
             cursor: pointer;
         }
 
-        .btn-small.danger {
-            background: rgba(239, 68, 68, 0.2);
-            color: #EF4444;
-        }
+        .btn-copy { background: rgba(99, 102, 241, 0.2); color: #818CF8; }
+        .btn-hwid { background: rgba(245, 158, 11, 0.2); color: #F59E0B; }
+        .btn-delete { background: rgba(239, 68, 68, 0.2); color: #EF4444; }
 
-        .btn-small.warn {
-            background: rgba(245, 158, 11, 0.2);
-            color: #F59E0B;
-        }
-
-        .btn-small.copy {
-            background: rgba(99, 102, 241, 0.2);
-            color: #818CF8;
-        }
-
-        /* Custom Date box */
-        #customDateBox {
-            display: none;
-            background: #111424;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px dashed var(--primary);
-            margin-bottom: 14px;
+        .empty-text {
+            color: var(--text-muted);
+            font-size: 13px;
+            text-align: center;
+            padding: 20px 0;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
+    <div class="header">
+        <h1>RESELLER CONTROL PANEL</h1>
+        <button class="btn-refresh" onclick="loadKeys()">REFRESH</button>
+    </div>
 
-    <!-- LOGIN SCREEN -->
-    <div id="loginSection" class="card" style="max-width: 420px; margin: 60px auto;">
-        <h2 class="login-title">RESELLER LOGIN</h2>
-        <form onsubmit="doLogin(event)">
-            <div class="form-group">
-                <label>User ID</label>
-                <input type="text" id="login_user" placeholder="Enter reseller ID" required>
+    <!-- Login / Wallet Info Card -->
+    <div class="card">
+        <div class="card-title">RESELLER ACCOUNT</div>
+        <div class="form-grid">
+            <div class="input-group">
+                <label>Your Reseller ID</label>
+                <input type="text" id="reseller_user" placeholder="Enter your ID" oninput="saveCredentials()">
             </div>
-            <div class="form-group">
+            <div class="input-group">
                 <label>Password</label>
-                <input type="password" id="login_pass" placeholder="Enter password" required>
+                <input type="password" id="reseller_pass" placeholder="Enter password" oninput="saveCredentials()">
             </div>
-            <button type="submit" class="btn" style="margin-top: 10px;">LOGIN TO PANEL</button>
+            <div class="input-group">
+                <label>Wallet Balance</label>
+                <input type="text" id="wallet_balance" value="₹0.00" readonly style="color: #34D399; font-weight: bold;">
+            </div>
+        </div>
+    </div>
+
+    <!-- Generate Key Card -->
+    <div class="card">
+        <div class="card-title">
+            <span>GENERATE LICENSE KEY</span>
+            <span style="font-size: 12px; color: #60A5FA; cursor: pointer;" onclick="makeRandomKey()">⚡ Random Key</span>
+        </div>
+        <form id="keyForm" onsubmit="generateKey(event)">
+            <div class="form-grid">
+                <div class="input-group">
+                    <label>License Key</label>
+                    <input type="text" id="new_key" placeholder="VIP-XXXX-XXXX" required>
+                </div>
+
+                <!-- DATE & TIME PICKER -->
+                <div class="input-group">
+                    <label>Expiry Date & Exact Time</label>
+                    <input type="datetime-local" id="expiry_datetime" required>
+                </div>
+
+                <div class="input-group">
+                    <label>Deduction Amount (₹)</label>
+                    <input type="number" id="key_cost" value="40" required>
+                </div>
+            </div>
+            <button type="submit" class="btn-submit">CREATE LICENSE KEY</button>
         </form>
     </div>
 
-    <!-- MAIN PANEL DASHBOARD -->
-    <div id="dashboardSection" style="display: none;">
-        
-        <!-- Header Info -->
-        <div class="user-header">
-            <div>
-                <h2 id="dispUsername">RESELLER</h2>
-                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;" id="dispExpiry">Valid Till: --</div>
-            </div>
-            <div style="text-align: right;">
-                <div class="balance-badge" id="dispBalance">₹0.00</div>
-                <button onclick="logout()" style="background: none; border: none; color: #EF4444; font-size: 11px; font-weight: 700; cursor: pointer; margin-top: 6px;">LOGOUT</button>
-            </div>
+    <!-- Keys List Card -->
+    <div class="card">
+        <div class="card-title">MY KEYS</div>
+        <div id="keysList">
+            <div class="empty-text">Apna Reseller ID aur Password enter karke REFRESH karein.</div>
         </div>
-
-        <!-- Create Key Card -->
-        <div class="card">
-            <div class="card-title">
-                <span>GENERATE VIP KEY</span>
-                <button type="button" class="btn-small copy" onclick="generateRandomKeyString()">RANDOM KEY</button>
-            </div>
-
-            <form onsubmit="generateKey(event)">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>License Key</label>
-                        <input type="text" id="new_key" placeholder="VIP-XXXX-XXXX" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Plan Type / Validity</label>
-                        <select id="plan_type" onchange="onPlanChange()">
-                            <option value="1h" data-cost="10">1 Hour (₹10)</option>
-                            <option value="1d" data-cost="40" selected>1 Day (₹40)</option>
-                            <option value="1m" data-cost="350">1 Month (30 Days) (₹350)</option>
-                            <option value="custom" data-cost="50">📅 Select Date & Time (Custom)</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Deduction Cost (₹)</label>
-                        <input type="number" id="key_cost" value="40" required>
-                    </div>
-                </div>
-
-                <!-- Custom Date & Time Picker (Jab Custom select ho tabhi dikhega) -->
-                <div id="customDateBox">
-                    <label style="color: #60A5FA; font-weight: 600;">Select Expiry Date & Exact Time:</label>
-                    <input type="datetime-local" id="custom_datetime" onchange="calculateCustomDuration()">
-                    <div id="datePreviewText" style="font-size: 12px; color: #34D399; margin-top: 6px;"></div>
-                </div>
-
-                <button type="submit" class="btn btn-success">CREATE LICENSE KEY</button>
-            </form>
-        </div>
-
-        <!-- Keys List Card -->
-        <div class="card">
-            <div class="card-title">
-                <span>GENERATED KEYS</span>
-                <button class="btn-small" onclick="loadDashboard()">REFRESH</button>
-            </div>
-            <div id="keysContainer">
-                <div style="text-align: center; color: var(--text-muted); padding: 20px;">Loading keys...</div>
-            </div>
-        </div>
-
     </div>
-
 </div>
 
 <script>
-    let currentUser = localStorage.getItem('reseller_user') || '';
+    const API_BASE = "https://vip-auth-api-1.onrender.com";
 
-    function onPlanChange() {
-        const select = document.getElementById('plan_type');
-        const customBox = document.getElementById('customDateBox');
-        const costInput = document.getElementById('key_cost');
-
-        const opt = select.options[select.selectedIndex];
-        costInput.value = opt.getAttribute('data-cost') || 40;
-
-        if (select.value === 'custom') {
-            customBox.style.display = 'block';
-            
-            // Default 24 hours from now set karein
-            const now = new Date();
-            now.setDate(now.getDate() + 1);
-            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-            document.getElementById('custom_datetime').value = now.toISOString().slice(0, 16);
-            calculateCustomDuration();
-        } else {
-            customBox.style.display = 'none';
-        }
+    // Default Date-Time 24 ghante aage ka set karein
+    function setDefaultDateTime() {
+        const d = new Date();
+        d.setDate(d.getDate() + 1);
+        d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+        document.getElementById('expiry_datetime').value = d.toISOString().slice(0, 16);
     }
 
-    function calculateCustomDuration() {
-        const dtVal = document.getElementById('custom_datetime').value;
-        if (!dtVal) return;
-
-        const target = new Date(dtVal).getTime();
-        const diffMs = target - Date.now();
-
-        if (diffMs <= 0) {
-            document.getElementById('datePreviewText').innerHTML = "<span style='color: #EF4444;'>Galat: Aane wale samay (future) ka date & time select karein!</span>";
-            return;
-        }
-
-        const hours = (diffMs / (1000 * 60 * 60)).toFixed(1);
-        const days = (diffMs / (1000 * 60 * 60 * 24)).toFixed(1);
-
-        document.getElementById('datePreviewText').innerHTML = `⏱️ Total Validity: <b>${days} Din</b> (${hours} Ghante)`;
-    }
-
-    function generateRandomKeyString() {
+    function makeRandomKey() {
         const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
         let r1 = "", r2 = "";
         for (let i = 0; i < 4; i++) r1 += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -393,222 +289,178 @@
         document.getElementById('new_key').value = "VIP-" + r1 + "-" + r2;
     }
 
-    async function doLogin(e) {
-        e.preventDefault();
-        const user = document.getElementById('login_user').value.trim().toLowerCase();
-        const pwd = document.getElementById('login_pass').value.trim();
+    function saveCredentials() {
+        localStorage.setItem('seller_u', document.getElementById('reseller_user').value.trim());
+        localStorage.setItem('seller_p', document.getElementById('reseller_pass').value.trim());
+    }
 
-        const body = new URLSearchParams({ username: user, password: pwd });
+    function loadSavedCredentials() {
+        const u = localStorage.getItem('seller_u') || '';
+        const p = localStorage.getItem('seller_p') || '';
+        if (u) document.getElementById('reseller_user').value = u;
+        if (p) document.getElementById('reseller_pass').value = p;
+        if (u) loadKeys();
+    }
+
+    async function loadKeys() {
+        const user = document.getElementById('reseller_user').value.trim().toLowerCase();
+        const container = document.getElementById('keysList');
+
+        if (!user) {
+            container.innerHTML = '<div class="empty-text">Pehle apna Reseller ID enter karein.</div>';
+            return;
+        }
 
         try {
-            const res = await fetch('/reseller/login', {
+            const res = await fetch(`${API_BASE}/reseller/data?username=${encodeURIComponent(user)}`);
+            const data = await res.json();
+
+            if (!data.success) {
+                container.innerHTML = `<div class="empty-text">${data.msg || "Reseller data load nahi hua"}</div>`;
+                return;
+            }
+
+            document.getElementById('wallet_balance').value = `₹${(data.balance || 0).toFixed(2)}`;
+
+            const keys = data.keys || [];
+            if (keys.length === 0) {
+                container.innerHTML = '<div class="empty-text">Koi key generate nahi hui hai.</div>';
+                return;
+            }
+
+            const now = Date.now();
+            let html = '';
+
+            keys.forEach(k => {
+                const exp = k.expiry_timestamp || 0;
+                const isExp = exp > 0 && now > exp;
+                let status = k.status || 'unused';
+                if (isExp) status = 'expired';
+
+                const expStr = exp > 0 ? new Date(exp).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' }) : 'No Expiry';
+
+                html += `
+                    <div class="key-item">
+                        <div class="item-top">
+                            <span class="key-name">${k.key}</span>
+                            <span class="badge badge-${status}">${status.toUpperCase()}</span>
+                        </div>
+                        <div class="item-details">
+                            Expiry: <span>${expStr}</span> | Plan: <span>${k.plan || 'Custom'}</span><br>
+                            Device (HWID): <span>${k.hwid ? k.hwid.slice(0, 18) + '...' : 'Not Bound (Khali)'}</span>
+                        </div>
+                        <div class="item-actions">
+                            <button class="btn-action btn-copy" onclick="copyKey('${k.key}')">COPY</button>
+                            ${k.hwid ? `<button class="btn-action btn-hwid" onclick="resetHWID('${k.key}')">RESET HWID</button>` : ''}
+                            <button class="btn-action btn-delete" onclick="deleteKey('${k.key}')">DELETE</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        } catch (err) {
+            container.innerHTML = '<div class="empty-text">Server load hone mein issue hai. Refresh karein.</div>';
+        }
+    }
+
+    async function generateKey(e) {
+        e.preventDefault();
+        const user = document.getElementById('reseller_user').value.trim().toLowerCase();
+        const key = document.getElementById('new_key').value.trim().toUpperCase();
+        const cost = document.getElementById('key_cost').value;
+        const dtVal = document.getElementById('expiry_datetime').value;
+
+        if (!user) {
+            alert("Pehle apna Reseller ID daalein!");
+            return;
+        }
+        if (!dtVal) {
+            alert("Expiry Date & Time select karein!");
+            return;
+        }
+
+        const targetMs = new Date(dtVal).getTime();
+        if (targetMs <= Date.now()) {
+            alert("Future (aane wale samay) ki Date aur Time select karein!");
+            return;
+        }
+
+        const dateStr = new Date(targetMs).toLocaleDateString('en-GB');
+        const timeStr = new Date(targetMs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        const body = new URLSearchParams({
+            username: user,
+            key: key,
+            cost: cost,
+            expiry_timestamp: targetMs,
+            plan_name: `Till ${dateStr} ${timeStr}`
+        });
+
+        try {
+            const res = await fetch(`${API_BASE}/reseller/generate_key`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: body
             });
             const data = await res.json();
+            alert(data.msg || (data.success ? `Key [${key}] generate ho gayi!` : 'Fail'));
             if (data.success) {
-                currentUser = user;
-                localStorage.setItem('reseller_user', user);
-                showDashboard();
-            } else {
-                alert(data.msg || "Login Failed!");
+                makeRandomKey();
+                loadKeys();
             }
         } catch (err) {
-            alert("Server connection error!");
-        }
-    }
-
-    function logout() {
-        localStorage.removeItem('reseller_user');
-        currentUser = '';
-        document.getElementById('loginSection').style.display = 'block';
-        document.getElementById('dashboardSection').style.display = 'none';
-    }
-
-    function showDashboard() {
-        document.getElementById('loginSection').style.display = 'none';
-        document.getElementById('dashboardSection').style.display = 'block';
-        document.getElementById('dispUsername').innerText = currentUser.toUpperCase();
-        generateRandomKeyString();
-        loadDashboard();
-    }
-
-    async function loadDashboard() {
-        if (!currentUser) return;
-
-        try {
-            const res = await fetch(`/reseller/data?username=${encodeURIComponent(currentUser)}`);
-            const data = await res.json();
-
-            if (!data.success) {
-                logout();
-                return;
-            }
-
-            document.getElementById('dispBalance').innerText = `₹${(data.balance || 0).toFixed(2)}`;
-            
-            const exp = data.expiry_timestamp || 0;
-            if (exp > 0) {
-                const remDays = Math.ceil((exp - Date.now()) / (1000 * 60 * 60 * 24));
-                document.getElementById('dispExpiry').innerText = `Valid: ${remDays} Din baaki (${new Date(exp).toLocaleDateString('en-GB')})`;
-            } else {
-                document.getElementById('dispExpiry').innerText = "Validity: Lifetime / Unlimited";
-            }
-
-            renderKeys(data.keys || []);
-        } catch (err) {
-            document.getElementById('keysContainer').innerHTML = '<div style="color:red; text-align:center;">Load fail hua. Refresh karein.</div>';
-        }
-    }
-
-    function renderKeys(keys) {
-        const container = document.getElementById('keysContainer');
-        if (keys.length === 0) {
-            container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">Koi key generate nahi hui hai.</div>';
-            return;
-        }
-
-        const now = Date.now();
-        let html = '';
-
-        keys.forEach(k => {
-            const exp = k.expiry_timestamp || 0;
-            const isExp = exp > 0 && now > exp;
-            let status = k.status || 'unused';
-            if (isExp) status = 'expired';
-
-            const expDateFormatted = exp > 0 ? new Date(exp).toLocaleString('en-GB') : 'No Expiry';
-
-            html += `
-                <div class="key-item">
-                    <div class="key-header">
-                        <span class="key-code">${k.key}</span>
-                        <span class="badge badge-${status}">${status.toUpperCase()}</span>
-                    </div>
-                    <div class="key-details">
-                        Plan: <span>${k.plan || 'Custom'}</span><br>
-                        Expiry: <span>${expDateFormatted}</span><br>
-                        Device (HWID): <span>${k.hwid ? k.hwid.slice(0, 16) + '...' : 'Not Bound (Khali)'}</span>
-                    </div>
-                    <div class="key-actions">
-                        <button class="btn-small copy" onclick="copyKey('${k.key}')">📋 COPY</button>
-                        ${k.hwid ? `<button class="btn-small warn" onclick="resetHWID('${k.key}')">RESET HWID</button>` : ''}
-                        <button class="btn-small danger" onclick="deleteKey('${k.key}')">DELETE</button>
-                    </div>
-                </div>
-            `;
-        });
-
-        container.innerHTML = html;
-    }
-
-    async function generateKey(e) {
-        e.preventDefault();
-        const key = document.getElementById('new_key').value.trim().toUpperCase();
-        const plan = document.getElementById('plan_type').value;
-        const cost = document.getElementById('key_cost').value;
-
-        const params = new URLSearchParams({
-            username: currentUser,
-            key: key,
-            plan: plan,
-            cost: cost
-        });
-
-        // Agar Custom Date & Time chuna hai toh timestamp calculate karke bhejein
-        if (plan === 'custom') {
-            const dtInput = document.getElementById('custom_datetime').value;
-            if (!dtInput) {
-                alert("Date aur Time select karein!");
-                return;
-            }
-            const targetMs = new Date(dtInput).getTime();
-            if (targetMs <= Date.now()) {
-                alert("Aage ka Date & Time select karein!");
-                return;
-            }
-
-            params.append('expiry_timestamp', targetMs);
-            const dateStr = new Date(targetMs).toLocaleDateString('en-GB');
-            const timeStr = new Date(targetMs).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            params.append('plan_name', `Till ${dateStr} ${timeStr}`);
-        }
-
-        try {
-            const res = await fetch('/reseller/generate_key', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: params
-            });
-            const data = await res.json();
-            if (data.success) {
-                alert(`Key [${key}] generate ho gayi!`);
-                generateRandomKeyString();
-                loadDashboard();
-            } else {
-                alert(data.msg || "Key generation failed!");
-            }
-        } catch (err) {
-            alert("Error generating key");
+            alert('Error generating key');
         }
     }
 
     function copyKey(key) {
-        navigator.clipboard.writeText(key).then(() => {
-            alert("Key copied: " + key);
-        });
+        navigator.clipboard.writeText(key).then(() => alert("Key copied: " + key));
     }
 
     async function resetHWID(key) {
-        if (!confirm(`Kya aap key [${key}] ka Device/HWID reset karna chahte hain?`)) return;
+        const user = document.getElementById('reseller_user').value.trim().toLowerCase();
+        if (!confirm(`Key [${key}] ka Device HWID reset karein?`)) return;
 
-        const body = new URLSearchParams({
-            username: currentUser,
-            key: key,
-            reset_hwid: 'true'
-        });
-
+        const body = new URLSearchParams({ username: user, key: key, reset_hwid: 'true' });
         try {
-            const res = await fetch('/reseller/edit_key', {
+            const res = await fetch(`${API_BASE}/reseller/edit_key`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: body
             });
             const data = await res.json();
             alert(data.msg || "Updated");
-            loadDashboard();
+            loadKeys();
         } catch (err) {
             alert("Reset fail!");
         }
     }
 
     async function deleteKey(key) {
-        if (!confirm(`Kya aap key [${key}] ko delete karna chahte hain?`)) return;
+        const user = document.getElementById('reseller_user').value.trim().toLowerCase();
+        if (!confirm(`Key [${key}] ko permanently delete karein?`)) return;
 
-        const body = new URLSearchParams({
-            username: currentUser,
-            key: key
-        });
-
+        const body = new URLSearchParams({ username: user, key: key });
         try {
-            const res = await fetch('/reseller/delete_key', {
+            const res = await fetch(`${API_BASE}/reseller/delete_key`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: body
             });
             const data = await res.json();
             alert(data.msg || "Deleted");
-            loadDashboard();
+            loadKeys();
         } catch (err) {
             alert("Delete fail!");
         }
     }
 
-    // Check login state
-    if (currentUser) {
-        showDashboard();
-    }
+    window.onload = function() {
+        setDefaultDateTime();
+        makeRandomKey();
+        loadSavedCredentials();
+    };
 </script>
 
 </body>
