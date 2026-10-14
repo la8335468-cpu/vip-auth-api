@@ -12,7 +12,6 @@
             --card-inner: #0D0F1B;
             --input: #0D0F1C;
             --primary: #6366F1;
-            --primary-hover: #4F46E5;
             --success: #10B981;
             --danger: #EF4444;
             --warning: #F59E0B;
@@ -40,7 +39,7 @@
             margin: 0 auto;
         }
 
-        /* LOGIN BOX */
+        /* 1. LOGIN SCREEN */
         #loginView {
             max-width: 400px;
             margin: 70px auto;
@@ -137,7 +136,7 @@
             margin-top: 4px;
         }
 
-        /* CARDS & FORMS */
+        /* CARD & FORMS */
         .card {
             background-color: var(--card);
             border: 1px solid var(--border);
@@ -331,7 +330,7 @@
         </form>
     </div>
 
-    <!-- 2. DASHBOARD VIEW (LOGIN KE BAAD KHULEGA) -->
+    <!-- 2. DASHBOARD VIEW -->
     <div id="dashView" style="display: none;">
         
         <!-- Header -->
@@ -346,23 +345,20 @@
             </div>
         </div>
 
-        <!-- 3 SIDE PROFILE STAT CARDS -->
+        <!-- 3 PROFILE STAT CARDS -->
         <div class="stats-grid">
-            <!-- 1. Wallet Balance -->
             <div class="stat-card">
                 <div class="stat-label">Wallet Balance</div>
                 <div class="stat-val" id="statBalance" style="color: #34D399;">₹0.00</div>
-                <div class="stat-sub">Current available funds</div>
+                <div class="stat-sub">Available wallet funds</div>
             </div>
 
-            <!-- 2. Total Keys Count -->
             <div class="stat-card">
                 <div class="stat-label">Total Generated Keys</div>
                 <div class="stat-val" id="statKeyCount" style="color: #60A5FA;">0</div>
-                <div class="stat-sub">Licenses created by you</div>
+                <div class="stat-sub">Keys created by you</div>
             </div>
 
-            <!-- 3. Profile / Expiry -->
             <div class="stat-card">
                 <div class="stat-label">Reseller Profile</div>
                 <div class="stat-val" id="statStatus" style="font-size: 18px; color: #F59E0B;">ACTIVE</div>
@@ -370,7 +366,7 @@
             </div>
         </div>
 
-        <!-- GENERATE VIP KEY CARD -->
+        <!-- KEY GENERATE CARD -->
         <div class="card">
             <div class="card-title">
                 <span>GENERATE VIP KEY</span>
@@ -383,22 +379,34 @@
                         <input type="text" id="new_key" placeholder="VIP-XXXX-XXXX" required>
                     </div>
 
-                    <!-- DATE & TIME PICKER -->
+                    <!-- SELECT PLAN: 7D, 15D, 30D, CUSTOM -->
                     <div class="input-group">
-                        <label>Expiry Date & Exact Time</label>
-                        <input type="datetime-local" id="new_exp_datetime" required>
+                        <label>Select Plan</label>
+                        <select id="plan_select" onchange="onPlanChange()">
+                            <option value="7d" selected>7 Days (₹1,000)</option>
+                            <option value="15d">15 Days (₹1,500)</option>
+                            <option value="30d">30 Days (₹2,000)</option>
+                            <option value="custom">📅 Custom Date & Time</option>
+                        </select>
                     </div>
 
+                    <!-- DATE & TIME PICKER -->
                     <div class="input-group">
-                        <label>Deduction Amount (₹)</label>
-                        <input type="number" id="key_cost" value="40" required>
+                        <label>Expiry Date & Time</label>
+                        <input type="datetime-local" id="new_exp_datetime" required onchange="onDateTimeManualChange()">
+                    </div>
+
+                    <!-- WALLET DEDUCTION PRICE -->
+                    <div class="input-group">
+                        <label>Wallet Deduction (₹)</label>
+                        <input type="number" id="key_cost" value="1000" required>
                     </div>
                 </div>
                 <button type="submit" class="btn-submit">GENERATE LICENSE KEY</button>
             </form>
         </div>
 
-        <!-- GENERATED KEYS LIST CARD -->
+        <!-- KEYS LIST -->
         <div class="card">
             <div class="card-title">GENERATED KEYS</div>
             <div id="keysContainer">
@@ -438,12 +446,34 @@
     let currentUser = localStorage.getItem('reseller_user') || '';
     let editingKey = '';
 
-    // Auto setup default 24h datetime
-    function setDefaultDateTime() {
-        const d = new Date();
-        d.setDate(d.getDate() + 1);
-        d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-        document.getElementById('new_exp_datetime').value = d.toISOString().slice(0, 16);
+    // Plan badalne par Price aur Date & Time automatic update hoga
+    function onPlanChange() {
+        const plan = document.getElementById('plan_select').value;
+        const costInput = document.getElementById('key_cost');
+        const dtInput = document.getElementById('new_exp_datetime');
+
+        const now = new Date();
+
+        if (plan === '7d') {
+            costInput.value = 1000;
+            now.setDate(now.getDate() + 7);
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            dtInput.value = now.toISOString().slice(0, 16);
+        } else if (plan === '15d') {
+            costInput.value = 1500;
+            now.setDate(now.getDate() + 15);
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            dtInput.value = now.toISOString().slice(0, 16);
+        } else if (plan === '30d') {
+            costInput.value = 2000;
+            now.setDate(now.getDate() + 30);
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            dtInput.value = now.toISOString().slice(0, 16);
+        }
+    }
+
+    function onDateTimeManualChange() {
+        document.getElementById('plan_select').value = 'custom';
     }
 
     function makeRandomKey() {
@@ -454,7 +484,7 @@
         document.getElementById('new_key').value = "VIP-" + r1 + "-" + r2;
     }
 
-    // LOGIN FUNCTION
+    // LOGIN
     async function handleLogin(e) {
         e.preventDefault();
         const user = document.getElementById('log_user').value.trim().toLowerCase();
@@ -492,12 +522,12 @@
         document.getElementById('loginView').style.display = 'none';
         document.getElementById('dashView').style.display = 'block';
         document.getElementById('welcomeUser').innerText = `Logged in as @${currentUser.toUpperCase()}`;
-        setDefaultDateTime();
+        onPlanChange();
         makeRandomKey();
         loadDashboard();
     }
 
-    // LOAD DATA (3 STATS + KEYS)
+    // LOAD DATA
     async function loadDashboard() {
         if (!currentUser) return;
 
@@ -510,14 +540,10 @@
                 return;
             }
 
-            // Stat 1: Wallet Balance
             document.getElementById('statBalance').innerText = `₹${(data.balance || 0).toFixed(2)}`;
-
-            // Stat 2: Total Keys Count
             const keys = data.keys || [];
             document.getElementById('statKeyCount').innerText = keys.length;
 
-            // Stat 3: Reseller Profile / Validity
             const exp = data.expiry_timestamp || 0;
             if (exp > 0) {
                 const remDays = Math.ceil((exp - Date.now()) / (1000 * 60 * 60 * 24));
@@ -557,7 +583,7 @@
                         <span class="badge badge-${status}">${status.toUpperCase()}</span>
                     </div>
                     <div class="key-info">
-                        Expiry: <span>${expStr}</span> | Plan: <span>${k.plan || 'Custom'}</span><br>
+                        Plan: <span>${k.plan || 'Custom'}</span> | Expiry: <span>${expStr}</span><br>
                         Device HWID: <span>${k.hwid ? k.hwid : 'Not Bound (Khali)'}</span>
                     </div>
                     <div class="key-actions">
@@ -577,6 +603,7 @@
     async function generateKey(e) {
         e.preventDefault();
         const key = document.getElementById('new_key').value.trim().toUpperCase();
+        const plan = document.getElementById('plan_select').value;
         const cost = document.getElementById('key_cost').value;
         const dtVal = document.getElementById('new_exp_datetime').value;
 
@@ -591,15 +618,23 @@
             return;
         }
 
-        const dateStr = new Date(targetMs).toLocaleDateString('en-GB');
-        const timeStr = new Date(targetMs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        let planName = "Custom Expiry";
+        if (plan === '7d') planName = "7 Days";
+        else if (plan === '15d') planName = "15 Days";
+        else if (plan === '30d') planName = "30 Days";
+        else {
+            const dateStr = new Date(targetMs).toLocaleDateString('en-GB');
+            const timeStr = new Date(targetMs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            planName = `Till ${dateStr} ${timeStr}`;
+        }
 
         const body = new URLSearchParams({
             username: currentUser,
             key: key,
+            plan: plan,
             cost: cost,
             expiry_timestamp: targetMs,
-            plan_name: `Till ${dateStr} ${timeStr}`
+            plan_name: planName
         });
 
         try {
@@ -612,6 +647,7 @@
             alert(data.msg || (data.success ? `Key [${key}] generate ho gayi!` : 'Failed'));
             if (data.success) {
                 makeRandomKey();
+                onPlanChange();
                 loadDashboard();
             }
         } catch (err) {
@@ -619,7 +655,6 @@
         }
     }
 
-    // ACTIONS: COPY, RESET HWID, DELETE, EDIT
     function copyKey(key) {
         navigator.clipboard.writeText(key).then(() => alert("Key copied: " + key));
     }
@@ -660,7 +695,6 @@
         }
     }
 
-    // EDIT MODAL LOGIC
     function openEditModal(key, curStatus) {
         editingKey = key;
         document.getElementById('editKeyName').innerText = key;
@@ -707,7 +741,6 @@
         }
     }
 
-    // Auto check if already logged in
     window.onload = function() {
         if (currentUser) {
             showDashboard();
