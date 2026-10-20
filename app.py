@@ -6,7 +6,7 @@ from flask import Flask, request, jsonify, send_file
 
 app = Flask(__name__)
 
-# --- BUILT-IN CORS ---
+# --- BUILT-IN CORS (No External Library Required) ---
 @app.after_request
 def after_request(response):
     response.headers.add('Access-Control-Allow-Origin', '*')
@@ -16,7 +16,7 @@ def after_request(response):
 
 FIREBASE_URL = "https://amanmod-91196-default-rtdb.firebaseio.com"
 
-# --- BUILT-IN PYTHON FIREBASE REST API ---
+# --- FIREBASE REST API HELPERS (Built-in urllib) ---
 def fb_request(endpoint, data=None, method='GET'):
     try:
         url = f"{FIREBASE_URL}/{endpoint}.json"
@@ -46,7 +46,7 @@ def fb_delete(endpoint):
     return res is not None
 
 
-# --- WEB PAGES ROUTES ---
+# --- WEB PAGE ROUTES ---
 @app.route('/')
 @app.route('/seller')
 def seller_page():
@@ -79,7 +79,9 @@ def create_reseller():
         "password": pwd,
         "balance": balance,
         "expiry_timestamp": expiry,
-        "status": "active"
+        "status": "active",
+        "whatsapp": "https://wa.me/919999999999",
+        "telegram": "https://t.me/your_telegram_id"
     }
 
     if fb_put(f"resellers/{user}", data):
@@ -169,8 +171,35 @@ def reseller_data():
         "success": True,
         "balance": reseller.get('balance', 0.0),
         "expiry_timestamp": reseller.get('expiry_timestamp', 0),
+        "whatsapp": reseller.get('whatsapp', 'https://wa.me/919999999999'),
+        "telegram": reseller.get('telegram', 'https://t.me/your_telegram_id'),
         "keys": user_keys
     })
+
+@app.route('/reseller/update_contact', methods=['POST'])
+def update_contact():
+    user = request.form.get('username', '').strip().lower()
+    wa = request.form.get('whatsapp', '').strip()
+    tg = request.form.get('telegram', '').strip()
+
+    if not user:
+        return jsonify({"success": False, "msg": "Username missing!"}), 400
+
+    update_payload = {}
+    if wa:
+        update_payload["whatsapp"] = wa
+    if tg:
+        update_payload["telegram"] = tg
+
+    fb_patch(f"resellers/{user}", update_payload)
+
+    fb_patch("panel_config/contact", {
+        "whatsapp": wa,
+        "telegram": tg,
+        "updated_by": user
+    })
+
+    return jsonify({"success": True, "msg": "WhatsApp aur Telegram links update ho gaye!"})
 
 @app.route('/reseller/generate_key', methods=['POST'])
 def reseller_generate_key():
@@ -183,7 +212,7 @@ def reseller_generate_key():
 
     now = int(time.time() * 1000)
 
-    # 1. Expiry Calculation
+    # Expiry Timeline Calculation
     if custom_exp:
         try:
             exp = int(custom_exp)
@@ -204,7 +233,7 @@ def reseller_generate_key():
         exp = now + (7 * 24 * 3600 * 1000)
         plan_name = "7 Days"
 
-    # 2. Cost Calculation
+    # Price Calculation
     plan_cost_map = {'7d': 1000.0, '15d': 1500.0, '30d': 2000.0}
     if cost_str:
         try:
