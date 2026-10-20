@@ -126,6 +126,39 @@ def delete_reseller():
     return jsonify({"success": False, "msg": "Delete fail!"}), 500
 
 
+# --- MASTER ADMIN: REMOTE KILL-SWITCH & BROADCAST ALERT APIS ---
+@app.route('/admin/set_app_control', methods=['POST'])
+def set_app_control():
+    status = request.form.get('status', 'active').strip()
+    alert_title = request.form.get('alert_title', '').strip()
+    alert_msg = request.form.get('alert_msg', '').strip()
+    show_alert = str(request.form.get('show_alert', 'false')).lower() == 'true'
+
+    control_data = {
+        "status": status,
+        "alert_title": alert_title,
+        "alert_msg": alert_msg,
+        "show_alert": show_alert,
+        "updated_at": int(time.time() * 1000)
+    }
+
+    if fb_patch("panel_config/app_control", control_data):
+        return jsonify({"success": True, "msg": "App control settings successfully update ho gayi!"})
+    return jsonify({"success": False, "msg": "Firebase update fail!"}), 500
+
+@app.route('/admin/get_app_control', methods=['GET'])
+def get_app_control():
+    data = fb_get("panel_config/app_control")
+    if not data or not isinstance(data, dict):
+        return jsonify({
+            "status": "active",
+            "alert_title": "",
+            "alert_msg": "",
+            "show_alert": False
+        })
+    return jsonify(data)
+
+
 # --- RESELLER PANEL APIS ---
 @app.route('/reseller/login', methods=['POST'])
 def reseller_login():
@@ -150,7 +183,6 @@ def reseller_login():
         "balance": reseller.get('balance', 0.0)
     })
 
-# SERVER TIME BHEJ RAHE HAIN
 @app.route('/reseller/data', methods=['GET'])
 def reseller_data():
     user = request.args.get('username', '').strip().lower()
@@ -169,7 +201,6 @@ def reseller_data():
     user_keys = [v for v in items if str(v.get('reseller', '')).lower() == user]
     user_keys.sort(key=lambda x: x.get('expiry_timestamp', 0), reverse=True)
 
-    # Real Server Clock (UTC)
     server_real_time = int(time.time() * 1000)
 
     return jsonify({
@@ -205,7 +236,6 @@ def update_contact():
 
     return jsonify({"success": True, "msg": "WhatsApp aur Telegram links update ho gaye!"})
 
-# KEY GENERATION (1 DIN = 100 RS FIXED)
 @app.route('/reseller/generate_key', methods=['POST'])
 def reseller_generate_key():
     user = request.form.get('username', '').strip().lower()
@@ -280,7 +310,8 @@ def reseller_delete_key():
         return jsonify({"success": True, "msg": "Key permanently delete ho gayi!"})
     return jsonify({"success": False, "msg": "Delete fail!"}), 500
 
-# VERIFY ROUTE (100% SERVER CLOCK)
+
+# --- TARGET ANDROID APP VERIFY (/verify) ---
 @app.route('/verify', methods=['POST'])
 def verify():
     key = request.form.get('key', '').strip().upper()
