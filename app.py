@@ -17,7 +17,7 @@ def after_request(response):
 
 FIREBASE_URL = "https://amanmod-91196-default-rtdb.firebaseio.com"
 
-# --- BUILT-IN FIREBASE REST API HELPERS ---
+# --- FIREBASE REST API HELPERS ---
 def fb_request(endpoint, data=None, method='GET'):
     try:
         url = f"{FIREBASE_URL}/{endpoint}.json"
@@ -150,6 +150,7 @@ def reseller_login():
         "balance": reseller.get('balance', 0.0)
     })
 
+# SERVER TIME BHEJ RAHE HAIN
 @app.route('/reseller/data', methods=['GET'])
 def reseller_data():
     user = request.args.get('username', '').strip().lower()
@@ -168,8 +169,12 @@ def reseller_data():
     user_keys = [v for v in items if str(v.get('reseller', '')).lower() == user]
     user_keys.sort(key=lambda x: x.get('expiry_timestamp', 0), reverse=True)
 
+    # Real Server Clock (UTC)
+    server_real_time = int(time.time() * 1000)
+
     return jsonify({
         "success": True,
+        "server_time": server_real_time,
         "balance": reseller.get('balance', 0.0),
         "expiry_timestamp": reseller.get('expiry_timestamp', 0),
         "whatsapp": reseller.get('whatsapp', 'https://wa.me/919999999999'),
@@ -200,7 +205,7 @@ def update_contact():
 
     return jsonify({"success": True, "msg": "WhatsApp aur Telegram links update ho gaye!"})
 
-# --- AUTO-PRICE KEY GENERATION (1 DAY = 100 INR) ---
+# KEY GENERATION (1 DIN = 100 RS FIXED)
 @app.route('/reseller/generate_key', methods=['POST'])
 def reseller_generate_key():
     user = request.form.get('username', '').strip().lower()
@@ -217,7 +222,6 @@ def reseller_generate_key():
     if exp <= now:
         return jsonify({"success": False, "msg": "Expiry date aane wale samay ki select karein!"}), 400
 
-    # Server-Side Strict Calculation (1 Din = ₹100)
     diff_ms = exp - now
     days = max(1, math.ceil(diff_ms / (24 * 3600 * 1000.0)))
     cost = float(days * 100.0)
@@ -256,10 +260,8 @@ def reseller_edit_key():
         return jsonify({"success": False, "msg": "Key nahi mili!"}), 404
 
     updates = {}
-    if status:
-        updates["status"] = status
-    if reset_hwid:
-        updates["hwid"] = ""
+    if status: updates["status"] = status
+    if reset_hwid: updates["hwid"] = ""
 
     if fb_patch(f"keys/{key}", updates):
         return jsonify({"success": True, "msg": "Key update ho gayi!"})
@@ -278,8 +280,7 @@ def reseller_delete_key():
         return jsonify({"success": True, "msg": "Key permanently delete ho gayi!"})
     return jsonify({"success": False, "msg": "Delete fail!"}), 500
 
-
-# --- TARGET ANDROID APP VERIFY (/verify) ---
+# VERIFY ROUTE (100% SERVER CLOCK)
 @app.route('/verify', methods=['POST'])
 def verify():
     key = request.form.get('key', '').strip().upper()
