@@ -1,12 +1,13 @@
 import os
 import time
 import json
+import math
 import urllib.request
 from flask import Flask, request, jsonify, send_file
 
 app = Flask(__name__)
 
-# --- BUILT-IN CORS (No External Library Required) ---
+# --- BUILT-IN CORS ---
 @app.after_request
 def after_request(response):
     response.headers.add('Access-Control-Allow-Origin', '*')
@@ -16,7 +17,7 @@ def after_request(response):
 
 FIREBASE_URL = "https://amanmod-91196-default-rtdb.firebaseio.com"
 
-# --- FIREBASE REST API HELPERS (Built-in urllib) ---
+# --- BUILT-IN FIREBASE REST API HELPERS ---
 def fb_request(endpoint, data=None, method='GET'):
     try:
         url = f"{FIREBASE_URL}/{endpoint}.json"
@@ -186,10 +187,8 @@ def update_contact():
         return jsonify({"success": False, "msg": "Username missing!"}), 400
 
     update_payload = {}
-    if wa:
-        update_payload["whatsapp"] = wa
-    if tg:
-        update_payload["telegram"] = tg
+    if wa: update_payload["whatsapp"] = wa
+    if tg: update_payload["telegram"] = tg
 
     fb_patch(f"resellers/{user}", update_payload)
 
@@ -201,54 +200,36 @@ def update_contact():
 
     return jsonify({"success": True, "msg": "WhatsApp aur Telegram links update ho gaye!"})
 
+# --- AUTO-PRICE KEY GENERATION (1 DAY = 100 INR) ---
 @app.route('/reseller/generate_key', methods=['POST'])
 def reseller_generate_key():
     user = request.form.get('username', '').strip().lower()
     key = request.form.get('key', '').strip().upper()
-    plan = request.form.get('plan', '7d').strip().lower()
-    cost_str = request.form.get('cost', '').strip()
     custom_exp = request.form.get('expiry_timestamp', '').strip()
-    custom_plan_name = request.form.get('plan_name', '').strip()
 
     now = int(time.time() * 1000)
 
-    # Expiry Timeline Calculation
-    if custom_exp:
-        try:
-            exp = int(custom_exp)
-            plan_name = custom_plan_name if custom_plan_name else "Custom Plan"
-        except Exception:
-            exp = now + (7 * 24 * 3600 * 1000)
-            plan_name = "7 Days"
-    elif plan == '7d':
-        exp = now + (7 * 24 * 3600 * 1000)
-        plan_name = "7 Days"
-    elif plan == '15d':
-        exp = now + (15 * 24 * 3600 * 1000)
-        plan_name = "15 Days"
-    elif plan == '30d':
-        exp = now + (30 * 24 * 3600 * 1000)
-        plan_name = "30 Days"
-    else:
-        exp = now + (7 * 24 * 3600 * 1000)
-        plan_name = "7 Days"
+    try:
+        exp = int(custom_exp)
+    except Exception:
+        exp = now + (24 * 3600 * 1000)
 
-    # Price Calculation
-    plan_cost_map = {'7d': 1000.0, '15d': 1500.0, '30d': 2000.0}
-    if cost_str:
-        try:
-            cost = float(cost_str)
-        except ValueError:
-            cost = plan_cost_map.get(plan, 1000.0)
-    else:
-        cost = plan_cost_map.get(plan, 1000.0)
+    if exp <= now:
+        return jsonify({"success": False, "msg": "Expiry date aane wale samay ki select karein!"}), 400
+
+    # Server-Side Strict Calculation (1 Din = ₹100)
+    diff_ms = exp - now
+    days = max(1, math.ceil(diff_ms / (24 * 3600 * 1000.0)))
+    cost = float(days * 100.0)
 
     reseller = fb_get(f"resellers/{user}")
     if not reseller or not isinstance(reseller, dict) or float(reseller.get('balance', 0.0)) < cost:
-        return jsonify({"success": False, "msg": f"Balance kam hai! ₹{cost:.0f} chahiye."}), 400
+        return jsonify({"success": False, "msg": f"Balance kam hai! ₹{cost:.0f} chahiye ({days} Din ke liye)."}), 400
 
     new_bal = float(reseller.get('balance', 0.0)) - cost
     fb_patch(f"resellers/{user}", {"balance": new_bal})
+
+    plan_name = f"{days} Day{'s' if days > 1 else ''}"
 
     key_data = {
         "key": key,
@@ -260,7 +241,7 @@ def reseller_generate_key():
     }
 
     if fb_put(f"keys/{key}", key_data):
-        return jsonify({"success": True, "key": key, "cost": cost})
+        return jsonify({"success": True, "key": key, "cost": cost, "days": days})
     return jsonify({"success": False, "msg": "Key generate fail!"}), 500
 
 @app.route('/reseller/edit_key', methods=['POST'])
@@ -268,32 +249,15 @@ def reseller_edit_key():
     user = request.form.get('username', '').strip().lower()
     key = request.form.get('key', '').strip().upper()
     status = request.form.get('status', '').strip()
-    plan = request.form.get('plan', '').strip().lower()
     reset_hwid = str(request.form.get('reset_hwid', '')).lower() == 'true'
 
     key_obj = fb_get(f"keys/{key}")
     if not key_obj or not isinstance(key_obj, dict) or str(key_obj.get('reseller', '')).lower() != user:
         return jsonify({"success": False, "msg": "Key nahi mili!"}), 404
 
-    now = int(time.time() * 1000)
-    exp = key_obj.get('expiry_timestamp', 0)
-    plan_name = key_obj.get('plan', '7 Days')
-
-    if plan == '7d':
-        exp = now + (7 * 24 * 3600 * 1000)
-        plan_name = "7 Days"
-    elif plan == '15d':
-        exp = now + (15 * 24 * 3600 * 1000)
-        plan_name = "15 Days"
-    elif plan == '30d':
-        exp = now + (30 * 24 * 3600 * 1000)
-        plan_name = "30 Days"
-
-    updates = {
-        "plan": plan_name,
-        "expiry_timestamp": exp,
-        "status": status if status else key_obj.get('status', 'unused')
-    }
+    updates = {}
+    if status:
+        updates["status"] = status
     if reset_hwid:
         updates["hwid"] = ""
 
