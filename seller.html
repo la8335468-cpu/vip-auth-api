@@ -385,7 +385,7 @@
             </form>
         </div>
 
-        <!-- KEY GENERATE CARD (DATE PICKER + LOCKED AUTO PRICE) -->
+        <!-- KEY GENERATE CARD -->
         <div class="card">
             <div class="card-title">
                 <span>GENERATE VIP KEY</span>
@@ -404,7 +404,7 @@
                         <input type="date" id="exp_date" required onchange="calculateAutoPrice()">
                     </div>
 
-                    <!-- LOCKED AUTO-CALCULATED PRICE -->
+                    <!-- LOCKED AUTO PRICE -->
                     <div class="input-group">
                         <label>Auto Price (₹100/Din - Locked)</label>
                         <input type="number" id="key_cost" value="100" readonly style="background-color: #121526; color: #34D399; font-weight: 800; cursor: not-allowed;">
@@ -451,13 +451,17 @@
     let editingKey = '';
     let calculatedTimestamp = 0;
 
-    // Date picker initialization & Auto calculation
+    // REAL SERVER TIME (Mobile time ko ignore karega)
+    let currentServerTime = 0;
+
     function initDatePicker() {
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        const yyyy = tomorrow.getFullYear();
-        const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
-        const dd = String(tomorrow.getDate()).padStart(2, '0');
+        // Agar server time available hai toh uski aage ki date lagayein
+        const baseDate = currentServerTime > 0 ? new Date(currentServerTime) : new Date();
+        baseDate.setDate(baseDate.getDate() + 1);
+
+        const yyyy = baseDate.getFullYear();
+        const mm = String(baseDate.getMonth() + 1).padStart(2, '0');
+        const dd = String(baseDate.getDate()).padStart(2, '0');
         const minStr = `${yyyy}-${mm}-${dd}`;
 
         const dateInput = document.getElementById('exp_date');
@@ -471,17 +475,14 @@
         const dateVal = document.getElementById('exp_date').value;
         if (!dateVal) return;
 
-        // Raat ke 11:59:59 PM tak validity
         const targetDate = new Date(dateVal + "T23:59:59");
-        const now = new Date();
-        const diffMs = targetDate.getTime() - now.getTime();
+        const compareBase = currentServerTime > 0 ? currentServerTime : Date.now();
+        const diffMs = targetDate.getTime() - compareBase;
 
         let days = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
         if (days < 1) days = 1;
 
-        // Auto Price: Har 1 din ka ₹100
         const totalCost = days * 100;
-
         document.getElementById('key_cost').value = totalCost;
         document.getElementById('daysSummary').innerText = `(${days} Din = ₹${totalCost})`;
         calculatedTimestamp = targetDate.getTime();
@@ -532,7 +533,6 @@
         document.getElementById('loginView').style.display = 'none';
         document.getElementById('dashView').style.display = 'block';
         document.getElementById('welcomeUser').innerText = `Logged in as @${currentUser.toUpperCase()}`;
-        initDatePicker();
         makeRandomKey();
         loadDashboard();
     }
@@ -549,13 +549,20 @@
                 return;
             }
 
+            // SERVER KA REAL TIME SET HUA
+            if (data.server_time) {
+                currentServerTime = data.server_time;
+            }
+
             document.getElementById('statBalance').innerText = `₹${(data.balance || 0).toFixed(2)}`;
             const keys = data.keys || [];
             document.getElementById('statKeyCount').innerText = keys.length;
 
+            // Reseller validity calculation using Server Time
             const exp = data.expiry_timestamp || 0;
+            const nowRef = currentServerTime > 0 ? currentServerTime : Date.now();
             if (exp > 0) {
-                const remDays = Math.ceil((exp - Date.now()) / (1000 * 60 * 60 * 24));
+                const remDays = Math.ceil((exp - nowRef) / (1000 * 60 * 60 * 24));
                 document.getElementById('statExpiry').innerText = `Valid: ${remDays} Din baaki (${new Date(exp).toLocaleDateString('en-GB')})`;
             } else {
                 document.getElementById('statExpiry').innerText = "Validity: Lifetime / Unlimited";
@@ -564,7 +571,8 @@
             if (data.whatsapp) document.getElementById('contact_whatsapp').value = data.whatsapp;
             if (data.telegram) document.getElementById('contact_telegram').value = data.telegram;
 
-            renderKeys(keys);
+            initDatePicker();
+            renderKeys(keys, nowRef);
         } catch (err) {
             document.getElementById('keysContainer').innerHTML = '<div style="color:#EF4444; text-align:center; padding:20px;">Server se data load nahi ho saka. Refresh karein.</div>';
         }
@@ -594,19 +602,20 @@
         }
     }
 
-    function renderKeys(keys) {
+    // SERVER TIME SE EXPIRY CHECK HOGI
+    function renderKeys(keys, realServerTime) {
         const container = document.getElementById('keysContainer');
         if (keys.length === 0) {
             container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">Abhi tak koi key generate nahi hui hai.</div>';
             return;
         }
 
-        const now = Date.now();
         let html = '';
 
         keys.forEach(k => {
             const exp = k.expiry_timestamp || 0;
-            const isExp = exp > 0 && now > exp;
+            // Server time se compare hoga (mobile clock se nahi)
+            const isExp = exp > 0 && realServerTime > exp;
             let status = k.status || 'unused';
             if (isExp) status = 'expired';
 
