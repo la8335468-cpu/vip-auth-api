@@ -1,263 +1,688 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Master Admin Panel</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
-      -webkit-tap-highlight-color: transparent;
-    }
-    body {
-      background: #0b0c16;
-      color: #e2e8f0;
-      padding: 16px;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-    }
-    .wrapper {
-      width: 100%;
-      max-width: 480px;
-    }
-    .card {
-      background: #141727;
-      border: 1px solid #232845;
-      border-radius: 16px;
-      padding: 18px;
-      margin-bottom: 16px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-    }
-    h2 {
-      font-size: 18px;
-      font-weight: 800;
-      color: #6366f1;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 14px;
-    }
-    label {
-      font-size: 11px;
-      font-weight: 700;
-      color: #94a3b8;
-      display: block;
-      margin: 10px 0 4px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    input {
-      width: 100%;
-      background: #0d0f1c;
-      border: 1px solid #232742;
-      border-radius: 9px;
-      padding: 11px 14px;
-      color: #fff;
-      font-size: 13px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    input:focus {
-      border-color: #6366f1;
-    }
-    .btn {
-      width: 100%;
-      border: none;
-      border-radius: 9px;
-      padding: 12px;
-      font-weight: 700;
-      font-size: 13px;
-      cursor: pointer;
-      margin-top: 14px;
-      transition: all 0.2s;
-    }
-    .btn-green { background: #16a34a; color: #fff; }
-    .btn-green:hover { background: #15803d; }
-    .btn-action {
-      border: none;
-      border-radius: 6px;
-      padding: 6px 10px;
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    .btn-del { background: #311319; color: #f87171; border: 1px solid #451a23; }
-    .btn-recharge { background: #14281f; color: #34d399; border: 1px solid #1c3b2d; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Control Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0B0C16;
+            --card: #141727;
+            --card-inner: #0D0F1B;
+            --input: #0D0F1C;
+            --primary: #6366F1;
+            --primary-hover: #4F46E5;
+            --success: #10B981;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --text-main: #F8FAFC;
+            --text-muted: #94A3B8;
+            --border: #1E233D;
+        }
 
-    .reseller-item {
-      background: #0d0f1b;
-      border: 1px solid #1f233d;
-      border-radius: 12px;
-      padding: 14px;
-      margin-top: 10px;
-    }
-    .reseller-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 6px;
-    }
-    .reseller-id {
-      font-size: 15px;
-      font-weight: 800;
-      color: #60a5fa;
-    }
-    .badge-days {
-      font-size: 11px;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 999px;
-    }
-    .badge-active { background: #064e3b; color: #34d399; }
-    .badge-expired { background: #451a1a; color: #f87171; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
 
-    .reseller-info {
-      font-size: 11px;
-      color: #94a3b8;
-      line-height: 1.6;
-    }
-    .actions-row {
-      display: flex;
-      gap: 6px;
-      margin-top: 10px;
-      justify-content: flex-end;
-    }
-  </style>
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            padding: 24px 16px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            color: var(--primary);
+        }
+
+        .btn-refresh {
+            background-color: var(--border);
+            color: #38BDF8;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-refresh:hover {
+            opacity: 0.85;
+        }
+
+        /* Card Container */
+        .card {
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 22px;
+            margin-bottom: 24px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 18px;
+            letter-spacing: 0.5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Status Badge */
+        .status-pill {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .status-online {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status-offline {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        /* Forms & Inputs */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .input-group input {
+            width: 100%;
+            background-color: var(--input);
+            border: 1px solid var(--border);
+            color: #fff;
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .input-group input:focus {
+            border-color: var(--primary);
+        }
+
+        /* Buttons */
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            flex: 1;
+            min-width: 180px;
+            padding: 13px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-action:hover {
+            opacity: 0.9;
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: #fff;
+        }
+
+        .btn-success {
+            background-color: var(--success);
+            color: #fff;
+        }
+
+        .btn-info {
+            background-color: #38BDF8;
+            color: #0B0C16;
+        }
+
+        .btn-secondary {
+            background-color: var(--border);
+            color: #F8FAFC;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background-color: var(--success);
+            color: #fff;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-submit:hover {
+            opacity: 0.9;
+        }
+
+        /* Reseller Items */
+        .reseller-item {
+            background-color: var(--card-inner);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px 18px;
+            margin-bottom: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .item-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .username {
+            font-size: 16px;
+            font-weight: 700;
+            color: #60A5FA;
+        }
+
+        .badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+
+        .badge-active {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+
+        .badge-expired {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+
+        .item-details {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .item-details span {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .item-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 6px;
+        }
+
+        .btn-recharge {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-delete {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .empty-text {
+            color: var(--text-muted);
+            font-size: 13px;
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            z-index: 100;
+        }
+
+        .modal-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 22px;
+            width: 100%;
+            max-width: 380px;
+        }
+
+        .modal-card h3 {
+            font-size: 15px;
+            margin-bottom: 12px;
+            color: var(--text-main);
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .btn-cancel {
+            background: transparent;
+            color: var(--text-muted);
+            border: none;
+            padding: 8px 14px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+    </style>
 </head>
 <body>
 
-<div class="wrapper">
-  
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding: 0 4px;">
-    <span style="font-weight: 800; color: #6366f1; font-size: 16px;">MASTER CONTROL PANEL</span>
-    <button onclick="loadResellers()" style="background:#1e233d; border:none; color:#38bdf8; font-size:12px; font-weight:700; padding:6px 12px; border-radius:8px; cursor:pointer;">Refresh</button>
-  </div>
+<div class="container">
+    <div class="header">
+        <h1>MASTER CONTROL PANEL</h1>
+        <button class="btn-refresh" onclick="loadAll()">REFRESH ALL</button>
+    </div>
 
-  <!-- CREATE RESELLER CARD -->
-  <div class="card">
-    <h2>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7.5" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
-      CREATE RESELLER
-    </h2>
+    <!-- 1. APP REMOTE CONTROL & BROADCAST ALERT CARD -->
+    <div class="card">
+        <div class="card-title">
+            <span>APP REMOTE KILL-SWITCH & BROADCAST ALERT</span>
+            <span id="appStatusBadge" class="status-pill status-online">CHECKING...</span>
+        </div>
 
-    <label>Reseller User ID / Username</label>
-    <input type="text" id="rUser" placeholder="e.g. roman / aman123">
+        <!-- Crash / Activate Controls -->
+        <div class="btn-group" style="margin-bottom: 20px;">
+            <button type="button" class="btn-action btn-danger" onclick="setAppStatus('disabled')">
+                🛑 CRASH / DEACTIVATE APP
+            </button>
+            <button type="button" class="btn-action btn-success" onclick="setAppStatus('active')">
+                ✅ ACTIVATE APP
+            </button>
+        </div>
 
-    <label>Reseller Password</label>
-    <input type="text" id="rPass" placeholder="e.g. pass1234">
+        <div style="border-top: 1px solid var(--border); padding-top: 18px; margin-bottom: 14px;">
+            <div style="font-size: 12px; font-weight: 700; color: #38BDF8; margin-bottom: 12px; text-transform: uppercase;">
+                Send Live Alert Dialog to All Users
+            </div>
+            <div class="form-grid">
+                <div class="input-group">
+                    <label>Alert Popup Title</label>
+                    <input type="text" id="alert_title" placeholder="e.g. Important Notice / Maintenance">
+                </div>
+                <div class="input-group">
+                    <label>Alert Popup Message</label>
+                    <input type="text" id="alert_msg" placeholder="e.g. Server maintenance underway. App will resume at 10 PM.">
+                </div>
+            </div>
+            <div class="btn-group">
+                <button type="button" class="btn-action btn-info" onclick="sendAppAlert(true)">
+                    📢 BROADCAST ALERT TO APP
+                </button>
+                <button type="button" class="btn-action btn-secondary" onclick="sendAppAlert(false)">
+                    ❌ CLEAR / REMOVE ALERT
+                </button>
+            </div>
+        </div>
+    </div>
 
-    <label>Validity (Kitne Din Tak Chalega)</label>
-    <input type="number" id="rDays" value="30" placeholder="Number of days (e.g. 30)">
+    <!-- 2. CREATE RESELLER CARD -->
+    <div class="card">
+        <div class="card-title">CREATE RESELLER</div>
+        <form id="createForm" onsubmit="createReseller(event)">
+            <div class="form-grid">
+                <div class="input-group">
+                    <label>Reseller User ID</label>
+                    <input type="text" id="new_user" placeholder="e.g. aman / vip_seller" required>
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="text" id="new_pass" placeholder="e.g. pass1234" required>
+                </div>
+                <div class="input-group">
+                    <label>Validity Days</label>
+                    <input type="number" id="new_days" value="30" required>
+                </div>
+                <div class="input-group">
+                    <label>Initial Balance (₹)</label>
+                    <input type="number" id="new_balance" value="500" required>
+                </div>
+            </div>
+            <button type="submit" class="btn-submit">CREATE RESELLER ID</button>
+        </form>
+    </div>
 
-    <label>Initial Wallet Balance (₹)</label>
-    <input type="number" id="rBal" value="500" placeholder="Wallet balance (e.g. 500)">
+    <!-- 3. RESELLERS LIST CARD -->
+    <div class="card">
+        <div class="card-title">REGISTERED RESELLERS</div>
+        <div id="resellerList">
+            <div class="empty-text">Loading resellers...</div>
+        </div>
+    </div>
+</div>
 
-    <button class="btn btn-green" onclick="createReseller()">CREATE RESELLER ID</button>
-  </div>
-
-  <!-- REGISTERED RESELLERS LIST -->
-  <div class="card">
-    <h2>RESELLER IDS</h2>
-    <div id="resellersList" style="margin-top: 10px;">Loading resellers...</div>
-  </div>
-
+<!-- Custom Recharge Modal -->
+<div class="modal" id="rechargeModal">
+    <div class="modal-card">
+        <h3>Recharge Wallet (<span id="modalUsername"></span>)</h3>
+        <div class="input-group">
+            <label>Amount to Add (₹)</label>
+            <input type="number" id="rechargeAmount" placeholder="e.g. 50, 100, 500" min="1">
+        </div>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+            <button class="btn-recharge" onclick="submitRecharge()">Add Balance</button>
+        </div>
+    </div>
 </div>
 
 <script>
-  const API_URL = "https://vip-auth-api-1.onrender.com";
+    const API_BASE = "https://vip-auth-api-1.onrender.com";
+    let activeRechargeUser = '';
 
-  document.addEventListener("DOMContentLoaded", () => {
-    loadResellers();
-  });
+    function loadAll() {
+        loadAppControl();
+        loadResellers();
+    }
 
-  function createReseller() {
-    const u = document.getElementById("rUser").value.trim().toLowerCase();
-    const p = document.getElementById("rPass").value.trim();
-    const d = document.getElementById("rDays").value;
-    const b = document.getElementById("rBal").value;
+    // --- 1. APP REMOTE CONTROL LOGIC ---
+    async function loadAppControl() {
+        try {
+            const res = await fetch(`${API_BASE}/admin/get_app_control`);
+            const data = await res.json();
 
-    if (!u || !p || !d) return alert("Username, Password aur Validity Days fill karein!");
+            const badge = document.getElementById('appStatusBadge');
+            if (data.status === 'disabled') {
+                badge.innerText = 'APP STATUS: DISABLED (CRASH)';
+                badge.className = 'status-pill status-offline';
+            } else {
+                badge.innerText = 'APP STATUS: ACTIVE (NORMAL)';
+                badge.className = 'status-pill status-online';
+            }
 
-    fetch(`${API_URL}/admin/create_reseller`, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: `username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}&days=${d}&balance=${b}`
-    })
-    .then(r => r.json())
-    .then(data => {
-      alert(data.msg);
-      document.getElementById("rUser").value = "";
-      document.getElementById("rPass").value = "";
-      loadResellers();
-    })
-    .catch(() => alert("Error creating reseller!"));
-  }
+            if (data.show_alert) {
+                document.getElementById('alert_title').value = data.alert_title || '';
+                document.getElementById('alert_msg').value = data.alert_msg || '';
+            }
+        } catch (e) {
+            console.error("App control load error", e);
+        }
+    }
 
-  function loadResellers() {
-    fetch(`${API_URL}/admin/get_resellers`)
-    .then(r => r.json())
-    .then(list => {
-      const box = document.getElementById("resellersList");
-      if (!list || list.length === 0) {
-        box.innerHTML = `<div style="font-size: 12px; color: #64748b; text-align:center; padding: 20px;">Koi reseller create nahi kiya gaya hai.</div>`;
-        return;
-      }
+    async function setAppStatus(status) {
+        const confirmMsg = status === 'disabled'
+            ? "⚠️ KYA AAP SACH ME SABHI USERS KE PHONE ME APP CRASH / BAND KARNA CHAHTE HAIN?"
+            : "✅ Kya aap app ko dobara NORMAL ACTIVATE karna chahte hain?";
 
-      const now = Date.now();
-      box.innerHTML = list.map(r => {
-        const remDays = r.expiry_timestamp > 0 ? Math.ceil((r.expiry_timestamp - now) / (1000 * 60 * 60 * 24)) : 0;
-        const isExp = remDays <= 0 && r.expiry_timestamp > 0;
-        const expDate = r.expiry_timestamp > 0 ? new Date(r.expiry_timestamp).toLocaleDateString('en-GB') : 'Unlimited';
+        if (!confirm(confirmMsg)) return;
 
-        return `
-          <div class="reseller-item">
-            <div class="reseller-header">
-              <span class="reseller-id">${r.username}</span>
-              <span class="badge-days ${isExp ? 'badge-expired' : 'badge-active'}">
-                ${isExp ? 'EXPIRED' : remDays + ' DIN BAAKI'}
-              </span>
-            </div>
-            <div class="reseller-info">
-              <div>Password: <strong style="color: #facc15;">${r.password || 'N/A'}</strong></div>
-              <div>Wallet Balance: <strong style="color: #22c55e;">₹${parseFloat(r.balance).toFixed(2)}</strong></div>
-              <div>Valid Till: <strong style="color: #cbd5e1;">${expDate}</strong></div>
-            </div>
-            <div class="actions-row">
-              <button class="btn-action btn-recharge" onclick="addBal('${r.username}')">+₹100 Wallet</button>
-              <button class="btn-action btn-del" onclick="delReseller('${r.username}')">Delete ID</button>
-            </div>
-          </div>
-        `;
-      }).join('');
-    })
-    .catch(() => {
-      document.getElementById("resellersList").innerHTML = `<div style="color:#ef4444; font-size:12px; text-align:center; padding:15px;">Failed to load data. 15 second baad Refresh dabayein.</div>`;
-    });
-  }
+        const body = new URLSearchParams({
+            status: status,
+            alert_title: status === 'disabled' ? "APP STOPPED" : "",
+            alert_msg: status === 'disabled' ? "App is temporarily disabled by Master Admin." : "",
+            show_alert: status === 'disabled' ? 'true' : 'false'
+        });
 
-  function addBal(u) {
-    fetch(`${API_URL}/admin/recharge_reseller`, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: `username=${u}&amount=100`
-    }).then(() => loadResellers());
-  }
+        try {
+            const res = await fetch(`${API_BASE}/admin/set_app_control`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body
+            });
+            const data = await res.json();
+            alert(data.msg || "Status Updated");
+            loadAppControl();
+        } catch (e) {
+            alert("Error updating status!");
+        }
+    }
 
-  function delReseller(u) {
-    if (!confirm(`Delete Reseller ID: ${u}?`)) return;
-    fetch(`${API_URL}/admin/delete_reseller`, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: `username=${u}`
-    }).then(() => loadResellers());
-  }
+    async function sendAppAlert(showAlert) {
+        const title = document.getElementById('alert_title').value.trim();
+        const msg = document.getElementById('alert_msg').value.trim();
+
+        if (showAlert && (!title || !msg)) {
+            alert("Title aur Message dono enter karein!");
+            return;
+        }
+
+        const body = new URLSearchParams({
+            status: 'active',
+            alert_title: title,
+            alert_msg: msg,
+            show_alert: showAlert ? 'true' : 'false'
+        });
+
+        try {
+            const res = await fetch(`${API_BASE}/admin/set_app_control`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body
+            });
+            const data = await res.json();
+            alert(showAlert ? "Alert dialog sabhi apps par bhej diya gaya!" : "Alert dialog hata diya gaya!");
+            if (!showAlert) {
+                document.getElementById('alert_title').value = '';
+                document.getElementById('alert_msg').value = '';
+            }
+            loadAppControl();
+        } catch (e) {
+            alert("Error broadcasting alert!");
+        }
+    }
+
+    // --- 2. RESELLERS MANAGEMENT LOGIC ---
+    async function loadResellers() {
+        const container = document.getElementById('resellerList');
+        try {
+            const res = await fetch(`${API_BASE}/admin/get_resellers`);
+            const data = await res.json();
+
+            if (!data || data.length === 0) {
+                container.innerHTML = '<div class="empty-text">Koi reseller create nahi hai.</div>';
+                return;
+            }
+
+            const now = Date.now();
+            let html = '';
+
+            data.forEach(r => {
+                const exp = r.expiry_timestamp || 0;
+                const remDays = exp > 0 ? Math.ceil((exp - now) / (1000 * 60 * 60 * 24)) : 0;
+                const isExpired = remDays <= 0 && exp > 0;
+                const expDateStr = exp > 0 ? new Date(exp).toLocaleDateString('en-GB') : 'Unlimited';
+
+                html += `
+                    <div class="reseller-item">
+                        <div class="item-top">
+                            <span class="username">${String(r.username).toUpperCase()}</span>
+                            <span class="badge ${isExpired ? 'badge-expired' : 'badge-active'}">
+                                ${isExpired ? 'EXPIRED' : remDays + ' DIN BAAKI'}
+                            </span>
+                        </div>
+                        <div class="item-details">
+                            Password: <span>${r.password || 'N/A'}</span><br>
+                            Wallet: <span>₹${(r.balance || 0).toFixed(2)}</span> | Valid Till: <span>${expDateStr}</span><br>
+                            WhatsApp: <span>${r.whatsapp || 'Default'}</span> | Telegram: <span>${r.telegram || 'Default'}</span>
+                        </div>
+                        <div class="item-actions">
+                            <button class="btn-recharge" onclick="openRechargeModal('${r.username}')">+ RECHARGE (₹)</button>
+                            <button class="btn-delete" onclick="deleteReseller('${r.username}')">DELETE ID</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        } catch (err) {
+            container.innerHTML = '<div class="empty-text">Server load hone mein issue hai. Refresh karein.</div>';
+        }
+    }
+
+    async function createReseller(e) {
+        e.preventDefault();
+        const user = document.getElementById('new_user').value.trim().toLowerCase();
+        const pass = document.getElementById('new_pass').value.trim();
+        const days = document.getElementById('new_days').value;
+        const balance = document.getElementById('new_balance').value;
+
+        const body = new URLSearchParams({
+            username: user,
+            password: pass,
+            days: days,
+            balance: balance
+        });
+
+        try {
+            const res = await fetch(`${API_BASE}/admin/create_reseller`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body
+            });
+            const data = await res.json();
+            alert(data.msg || 'Created');
+            if (data.success) {
+                document.getElementById('new_user').value = '';
+                document.getElementById('new_pass').value = '';
+                loadResellers();
+            }
+        } catch (err) {
+            alert('Error creating reseller');
+        }
+    }
+
+    function openRechargeModal(username) {
+        activeRechargeUser = username;
+        document.getElementById('modalUsername').innerText = String(username).toUpperCase();
+        document.getElementById('rechargeAmount').value = '';
+        document.getElementById('rechargeModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('rechargeModal').style.display = 'none';
+        activeRechargeUser = '';
+    }
+
+    async function submitRecharge() {
+        const amt = document.getElementById('rechargeAmount').value;
+        if (!amt || parseFloat(amt) <= 0) {
+            alert('Valid amount daalein!');
+            return;
+        }
+
+        const body = new URLSearchParams({
+            username: activeRechargeUser,
+            amount: amt
+        });
+
+        try {
+            const res = await fetch(`${API_BASE}/admin/recharge_reseller`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(`₹${amt} successfully add ho gaya!`);
+                closeModal();
+                loadResellers();
+            } else {
+                alert(data.msg || 'Recharge fail');
+            }
+        } catch (err) {
+            alert('Error recharging');
+        }
+    }
+
+    async function deleteReseller(username) {
+        if (!confirm(`Kya aap [${String(username).toUpperCase()}] ko permanently delete karna chahte hain?`)) {
+            return;
+        }
+
+        const body = new URLSearchParams({ username: username });
+
+        try {
+            const res = await fetch(`${API_BASE}/admin/delete_reseller`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert('Deleted successfully');
+                loadResellers();
+            } else {
+                alert(data.msg || 'Delete fail');
+            }
+        } catch (err) {
+            alert('Error deleting');
+        }
+    }
+
+    window.onload = loadAll;
 </script>
 
 </body>
