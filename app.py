@@ -3,10 +3,16 @@ import time
 import json
 import urllib.request
 from flask import Flask, request, jsonify, send_file
-from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)
+
+# --- BUILT-IN CORS ---
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
 
 FIREBASE_URL = "https://amanmod-91196-default-rtdb.firebaseio.com"
 
@@ -166,7 +172,6 @@ def reseller_data():
         "keys": user_keys
     })
 
-# --- FIX: 7D, 15D, 30D KA EXACT LOGIC ---
 @app.route('/reseller/generate_key', methods=['POST'])
 def reseller_generate_key():
     user = request.form.get('username', '').strip().lower()
@@ -178,7 +183,7 @@ def reseller_generate_key():
 
     now = int(time.time() * 1000)
 
-    # 1. Exact Expiry Calculation
+    # 1. Expiry Calculation
     if custom_exp:
         try:
             exp = int(custom_exp)
@@ -199,12 +204,8 @@ def reseller_generate_key():
         exp = now + (7 * 24 * 3600 * 1000)
         plan_name = "7 Days"
 
-    # 2. Exact Cost Calculation
-    plan_cost_map = {
-        '7d': 1000.0,
-        '15d': 1500.0,
-        '30d': 2000.0
-    }
+    # 2. Cost Calculation
+    plan_cost_map = {'7d': 1000.0, '15d': 1500.0, '30d': 2000.0}
     if cost_str:
         try:
             cost = float(cost_str)
@@ -258,131 +259,6 @@ def reseller_edit_key():
     elif plan == '30d':
         exp = now + (30 * 24 * 3600 * 1000)
         plan_name = "30 Days"
-
-    updates = {
-        "plan": plan_name,
-        "expiry_timestamp": exp,
-        "status": status if status else key_obj.get('status', 'unused')
-    }
-    if reset_hwid:
-        updates["hwid"] = ""
-
-    if fb_patch(f"keys/{key}", updates):
-        return jsonify({"success": True, "msg": "Key update ho gayi!"})
-    return jsonify({"success": False, "msg": "Key update fail!"}), 500
-
-@app.route('/reseller/delete_key', methods=['POST'])
-def reseller_delete_key():
-    user = request.form.get('username', '').strip().lower()
-    key = request.form.get('key', '').strip().upper()
-
-    key_obj = fb_get(f"keys/{key}")
-    if not key_obj or not isinstance(key_obj, dict) or str(key_obj.get('reseller', '')).lower() != user:
-        return jsonify({"success": False, "msg": "Key nahi mili!"}), 404
-
-    if fb_delete(f"keys/{key}"):
-        return jsonify({"success": True, "msg": "Key permanently delete ho gayi!"})
-    return jsonify({"success": False, "msg": "Delete fail!"}), 500
-
-
-# --- TARGET ANDROID APP VERIFY (/verify) ---
-@app.route('/verify', methods=['POST'])
-def verify():
-    key = request.form.get('key', '').strip().upper()
-    hwid = request.form.get('hwid', '').strip().lower()
-
-    if not key or not hwid:
-        return jsonify({"status": False, "msg": "KEY AUR HWID MISSING HAI"}), 400
-
-    key_obj = fb_get(f"keys/{key}")
-    if not key_obj or not isinstance(key_obj, dict):
-        return jsonify({"status": False, "msg": "INVALID LICENSE KEY"})
-
-    now = int(time.time() * 1000)
-    exp = key_obj.get('expiry_timestamp', 0)
-    if exp > 0 and now > exp:
-        fb_patch(f"keys/{key}", {"status": "expired"})
-        return jsonify({"status": False, "msg": "KEY EXPIRED"})
-
-    if key_obj.get('status') == 'frozen':
-        return jsonify({"status": False, "msg": "KEY IS FROZEN"})
-
-    bound_hwid = key_obj.get('hwid', '').strip().lower()
-    if not bound_hwid:
-        fb_patch(f"keys/{key}", {"hwid": hwid, "status": "active"})
-        return jsonify({"status": True, "msg": "DEVICE BOUND & ACCESS GRANTED"})
-
-    if bound_hwid == hwid:
-        return jsonify({"status": True, "msg": "LOGIN SUCCESSFUL"})
-    else:
-        return jsonify({"status": False, "msg": "HWID MISMATCH! BOUND TO ANOTHER DEVICE"})
-
-
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 8000))
-    app.run(host='0.0.0.0', port=port)
-
-        plan_name = "1 Hour"
-    elif plan == '1d':
-        exp = now + (24 * 3600 * 1000)
-        plan_name = "1 Day"
-    else:
-        exp = now + (30 * 24 * 3600 * 1000)
-        plan_name = "1 Month"
-
-    if exp <= now:
-        return jsonify({"success": False, "msg": "Expiry date aane wale samay (future) ki honi chahiye!"}), 400
-
-    new_bal = float(reseller.get('balance', 0.0)) - cost
-    fb_patch(f"resellers/{user}", {"balance": new_bal})
-
-    key_data = {
-        "key": key,
-        "hwid": "",
-        "status": "unused",
-        "reseller": user,
-        "plan": plan_name,
-        "expiry_timestamp": exp
-    }
-
-    if fb_put(f"keys/{key}", key_data):
-        return jsonify({"success": True, "key": key, "cost": cost})
-    return jsonify({"success": False, "msg": "Key generate fail!"}), 500
-
-@app.route('/reseller/edit_key', methods=['POST'])
-def reseller_edit_key():
-    user = request.form.get('username', '').strip().lower()
-    key = request.form.get('key', '').strip().upper()
-    status = request.form.get('status', '').strip()
-    plan = request.form.get('plan', '').strip()
-    custom_exp = request.form.get('expiry_timestamp', '').strip()
-    custom_plan_name = request.form.get('plan_name', '').strip()
-    reset_hwid = str(request.form.get('reset_hwid', '')).lower() == 'true'
-
-    key_obj = fb_get(f"keys/{key}")
-    if not key_obj or not isinstance(key_obj, dict) or str(key_obj.get('reseller', '')).lower() != user:
-        return jsonify({"success": False, "msg": "Key nahi mili!"}), 404
-
-    now = int(time.time() * 1000)
-    exp = key_obj.get('expiry_timestamp', 0)
-    plan_name = key_obj.get('plan', '1 Day')
-
-    if custom_exp:
-        try:
-            exp = int(custom_exp)
-            plan_name = custom_plan_name if custom_plan_name else "Custom Expiry"
-        except Exception:
-            pass
-    elif plan:
-        if plan == '1h':
-            exp = now + (3600 * 1000)
-            plan_name = "1 Hour"
-        elif plan == '1d':
-            exp = now + (24 * 3600 * 1000)
-            plan_name = "1 Day"
-        elif plan == '1m':
-            exp = now + (30 * 24 * 3600 * 1000)
-            plan_name = "1 Month"
 
     updates = {
         "plan": plan_name,
