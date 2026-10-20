@@ -39,7 +39,6 @@
             margin: 0 auto;
         }
 
-        /* 1. LOGIN SCREEN */
         #loginView {
             max-width: 400px;
             margin: 70px auto;
@@ -59,7 +58,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* HEADER */
         .dash-header {
             display: flex;
             justify-content: space-between;
@@ -98,7 +96,6 @@
             border: 1px solid rgba(239, 68, 68, 0.3);
         }
 
-        /* STATS CARDS */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -136,7 +133,6 @@
             margin-top: 4px;
         }
 
-        /* CARD & FORMS */
         .card {
             background-color: var(--card);
             border: 1px solid var(--border);
@@ -204,7 +200,11 @@
             opacity: 0.9;
         }
 
-        /* KEY ITEMS */
+        .btn-blue {
+            background-color: #38BDF8;
+            color: #0B0C16;
+        }
+
         .key-item {
             background-color: var(--card-inner);
             border: 1px solid var(--border);
@@ -275,7 +275,6 @@
         .btn-edit { background: rgba(56, 189, 248, 0.2); color: #38BDF8; }
         .btn-del { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
 
-        /* MODAL */
         .modal {
             display: none;
             position: fixed;
@@ -333,7 +332,6 @@
     <!-- 2. DASHBOARD VIEW -->
     <div id="dashView" style="display: none;">
         
-        <!-- Header -->
         <div class="dash-header">
             <div>
                 <h1>RESELLER PANEL</h1>
@@ -366,7 +364,28 @@
             </div>
         </div>
 
-        <!-- KEY GENERATE CARD -->
+        <!-- DIALOG CONTACT LINKS -->
+        <div class="card">
+            <div class="card-title">
+                <span>📱 DIALOG CONTACT LINKS (WHATSAPP & TELEGRAM)</span>
+            </div>
+            <form onsubmit="updateContactLinks(event)">
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label>WhatsApp Link / Number</label>
+                        <input type="text" id="contact_whatsapp" placeholder="https://wa.me/919999999999" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Telegram Link / Username</label>
+                        <input type="text" id="contact_telegram" placeholder="https://t.me/your_username" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn-submit btn-blue">UPDATE DIALOG LINKS</button>
+            </form>
+        </div>
+
+        <!-- KEY GENERATE CARD (DATE PICKER + LOCKED AUTO PRICE) -->
         <div class="card">
             <div class="card-title">
                 <span>GENERATE VIP KEY</span>
@@ -379,20 +398,16 @@
                         <input type="text" id="new_key" placeholder="VIP-XXXX-XXXX" required>
                     </div>
 
-                    <!-- SELECT PLAN -->
+                    <!-- DATE PICKER -->
                     <div class="input-group">
-                        <label>Select Plan</label>
-                        <select id="plan_select" onchange="onPlanChange()">
-                            <option value="7d" selected>7 Days (₹1,000)</option>
-                            <option value="15d">15 Days (₹1,500)</option>
-                            <option value="30d">30 Days (₹2,000)</option>
-                        </select>
+                        <label>Select Expiry Date <span id="daysSummary" style="color: #60A5FA; font-weight: bold;">(1 Din)</span></label>
+                        <input type="date" id="exp_date" required onchange="calculateAutoPrice()">
                     </div>
 
-                    <!-- WALLET DEDUCTION -->
+                    <!-- LOCKED AUTO-CALCULATED PRICE -->
                     <div class="input-group">
-                        <label>Wallet Deduction (₹)</label>
-                        <input type="number" id="key_cost" value="1000" readonly style="background-color: #121526; color: #34D399; font-weight: bold;">
+                        <label>Auto Price (₹100/Din - Locked)</label>
+                        <input type="number" id="key_cost" value="100" readonly style="background-color: #121526; color: #34D399; font-weight: 800; cursor: not-allowed;">
                     </div>
                 </div>
                 <button type="submit" class="btn-submit">GENERATE LICENSE KEY</button>
@@ -434,14 +449,42 @@
     const API_BASE = "https://vip-auth-api-1.onrender.com";
     let currentUser = localStorage.getItem('reseller_user') || '';
     let editingKey = '';
+    let calculatedTimestamp = 0;
 
-    function onPlanChange() {
-        const plan = document.getElementById('plan_select').value;
-        const costInput = document.getElementById('key_cost');
+    // Date picker initialization & Auto calculation
+    function initDatePicker() {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const yyyy = tomorrow.getFullYear();
+        const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
+        const dd = String(tomorrow.getDate()).padStart(2, '0');
+        const minStr = `${yyyy}-${mm}-${dd}`;
 
-        if (plan === '7d') costInput.value = 1000;
-        else if (plan === '15d') costInput.value = 1500;
-        else if (plan === '30d') costInput.value = 2000;
+        const dateInput = document.getElementById('exp_date');
+        dateInput.min = minStr;
+        dateInput.value = minStr;
+
+        calculateAutoPrice();
+    }
+
+    function calculateAutoPrice() {
+        const dateVal = document.getElementById('exp_date').value;
+        if (!dateVal) return;
+
+        // Raat ke 11:59:59 PM tak validity
+        const targetDate = new Date(dateVal + "T23:59:59");
+        const now = new Date();
+        const diffMs = targetDate.getTime() - now.getTime();
+
+        let days = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+        if (days < 1) days = 1;
+
+        // Auto Price: Har 1 din ka ₹100
+        const totalCost = days * 100;
+
+        document.getElementById('key_cost').value = totalCost;
+        document.getElementById('daysSummary').innerText = `(${days} Din = ₹${totalCost})`;
+        calculatedTimestamp = targetDate.getTime();
     }
 
     function makeRandomKey() {
@@ -452,10 +495,9 @@
         document.getElementById('new_key').value = "VIP-" + r1 + "-" + r2;
     }
 
-    // LOGIN
     async function handleLogin(e) {
         e.preventDefault();
-        const user = document.getElementById('log_user').value.trim().lowerCase ? document.getElementById('log_user').value.trim().toLowerCase() : document.getElementById('log_user').value.trim();
+        const user = document.getElementById('log_user').value.trim().toLowerCase();
         const pass = document.getElementById('log_pass').value.trim();
 
         const body = new URLSearchParams({ username: user, password: pass });
@@ -490,12 +532,11 @@
         document.getElementById('loginView').style.display = 'none';
         document.getElementById('dashView').style.display = 'block';
         document.getElementById('welcomeUser').innerText = `Logged in as @${currentUser.toUpperCase()}`;
-        onPlanChange();
+        initDatePicker();
         makeRandomKey();
         loadDashboard();
     }
 
-    // LOAD DATA
     async function loadDashboard() {
         if (!currentUser) return;
 
@@ -520,9 +561,36 @@
                 document.getElementById('statExpiry').innerText = "Validity: Lifetime / Unlimited";
             }
 
+            if (data.whatsapp) document.getElementById('contact_whatsapp').value = data.whatsapp;
+            if (data.telegram) document.getElementById('contact_telegram').value = data.telegram;
+
             renderKeys(keys);
         } catch (err) {
             document.getElementById('keysContainer').innerHTML = '<div style="color:#EF4444; text-align:center; padding:20px;">Server se data load nahi ho saka. Refresh karein.</div>';
+        }
+    }
+
+    async function updateContactLinks(e) {
+        e.preventDefault();
+        const wa = document.getElementById('contact_whatsapp').value.trim();
+        const tg = document.getElementById('contact_telegram').value.trim();
+
+        const body = new URLSearchParams({
+            username: currentUser,
+            whatsapp: wa,
+            telegram: tg
+        });
+
+        try {
+            const res = await fetch(`${API_BASE}/reseller/update_contact`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body
+            });
+            const data = await res.json();
+            alert(data.msg || (data.success ? "Updated!" : "Failed"));
+        } catch (err) {
+            alert("Error updating contact links!");
         }
     }
 
@@ -567,36 +635,18 @@
         container.innerHTML = html;
     }
 
-    // EXACT EXPIRY TIME SENT DIRECTLY
     async function generateKey(e) {
         e.preventDefault();
         const key = document.getElementById('new_key').value.trim().toUpperCase();
-        const plan = document.getElementById('plan_select').value;
-        const cost = document.getElementById('key_cost').value;
 
-        // Exact timestamp frontend par hi calculate karke bhejenge taaki backend me koi glitch na rahe
-        const now = Date.now();
-        let expTimestamp = 0;
-        let planName = "7 Days";
-
-        if (plan === '7d') {
-            expTimestamp = now + (7 * 24 * 60 * 60 * 1000);
-            planName = "7 Days";
-        } else if (plan === '15d') {
-            expTimestamp = now + (15 * 24 * 60 * 60 * 1000);
-            planName = "15 Days";
-        } else if (plan === '30d') {
-            expTimestamp = now + (30 * 24 * 60 * 60 * 1000);
-            planName = "30 Days";
+        if (!calculatedTimestamp) {
+            calculateAutoPrice();
         }
 
         const body = new URLSearchParams({
             username: currentUser,
             key: key,
-            plan: plan,
-            cost: cost,
-            expiry_timestamp: expTimestamp.toString(),
-            plan_name: planName
+            expiry_timestamp: calculatedTimestamp.toString()
         });
 
         try {
@@ -606,11 +656,13 @@
                 body: body
             });
             const data = await res.json();
-            alert(data.msg || (data.success ? `Key [${key}] (${planName}) generate ho gayi!` : 'Failed'));
             if (data.success) {
+                alert(`Key [${key}] successfully generate ho gayi!\nValidity: ${data.days} Din\nPrice: ₹${data.cost} deduct hua.`);
                 makeRandomKey();
-                onPlanChange();
+                initDatePicker();
                 loadDashboard();
+            } else {
+                alert(data.msg || "Failed to generate key!");
             }
         } catch (err) {
             alert('Error generating key');
