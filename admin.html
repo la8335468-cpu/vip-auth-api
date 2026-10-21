@@ -55,7 +55,6 @@
         
         .btn-small { border: none; padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; margin-left: 4px; }
         
-        /* Modal */
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); justify-content: center; align-items: center; padding: 16px; z-index: 200; }
         .modal-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 22px; width: 100%; max-width: 360px; }
         .modal-card h3 { font-size: 15px; margin-bottom: 14px; color: #60A5FA; }
@@ -70,10 +69,10 @@
         <button class="btn-refresh" onclick="loadAll()">REFRESH</button>
     </div>
 
-    <!-- STATS COUNTER BOXES (Clickable Filters) -->
+    <!-- STATS COUNTER BOXES -->
     <div class="stats-grid-2x2">
         <div class="stat-box active-filter" id="filterAll" onclick="setFilter('all')">
-            <span class="stat-box-title">Total Admins</span>
+            <span class="stat-box-title">Total Resellers</span>
             <span class="stat-box-val" id="statTotal" style="color:#60A5FA;">0</span>
         </div>
         <div class="stat-box" id="filterActive" onclick="setFilter('active')">
@@ -118,82 +117,54 @@
         </div>
     </div>
 
-    <!-- 2. CREATE ADMIN ACCOUNT -->
+    <!-- 2. CREATE RESELLER ACCOUNT -->
     <div class="card">
-        <div class="card-title">👤 CREATE ADMIN (SUB-ADMIN) ACCOUNT</div>
-        <form onsubmit="createAdmin(event)">
+        <div class="card-title">👤 CREATE RESELLER ACCOUNT</div>
+        <form onsubmit="createReseller(event)">
             <div class="form-grid">
                 <div class="input-group">
-                    <label>Admin User ID</label>
-                    <input type="text" id="new_admin_user" placeholder="e.g. subadmin1" required>
+                    <label>Reseller User ID</label>
+                    <input type="text" id="new_res_user" placeholder="e.g. seller1" required>
                 </div>
                 <div class="input-group">
                     <label>Password</label>
-                    <input type="text" id="new_admin_pass" placeholder="Enter password" required>
+                    <input type="text" id="new_res_pass" placeholder="Enter password" required>
                 </div>
                 <div class="input-group">
-                    <label>Expiry / Duration</label>
-                    <select id="new_admin_duration">
-                        <option value="never">Never (Lifetime)</option>
-                        <option value="1d">1 Day</option>
-                        <option value="7d">7 Days</option>
-                        <option value="30d" selected>30 Days</option>
-                    </select>
+                    <label>Initial Balance (₹)</label>
+                    <input type="number" id="new_res_bal" value="500" required>
+                </div>
+                <div class="input-group">
+                    <label>Validity Days</label>
+                    <input type="number" id="new_res_days" value="30" required>
                 </div>
             </div>
-            <button type="submit" class="btn-act btn-success" style="width: 100%;">CREATE ADMIN ID</button>
+            <button type="submit" class="btn-act btn-success" style="width: 100%;">CREATE RESELLER ID</button>
         </form>
     </div>
 
-    <!-- 3. ADMINS LIST -->
+    <!-- 3. RESELLERS LIST -->
     <div class="card">
         <div class="card-title">
-            <span id="adminsListTitle">📋 REGISTERED ADMINS (ALL)</span>
+            <span id="adminsListTitle">📋 REGISTERED RESELLERS (ALL)</span>
         </div>
-        <div id="adminsList"><div style="text-align: center; color: var(--text-muted); padding: 15px;">Loading admins...</div></div>
-    </div>
-</div>
-
-<!-- EDIT ADMIN MODAL -->
-<div class="modal" id="editAdminModal">
-    <div class="modal-card">
-        <h3>Edit Admin: <span id="editAdminName" style="color:#60A5FA;"></span></h3>
-        <div class="input-group">
-            <label>New Password</label>
-            <input type="text" id="editAdminPass" placeholder="Leave blank to keep same">
-        </div>
-        <div class="input-group" style="margin-top:10px;">
-            <label>Status</label>
-            <select id="editAdminStatus">
-                <option value="active">ACTIVE</option>
-                <option value="blocked">BLOCKED</option>
-            </select>
-        </div>
-        <div class="input-group" style="margin-top:10px;">
-            <label>Extend Expiry (Days from now)</label>
-            <input type="number" id="editAdminDays" placeholder="e.g. 30 (Leave blank if no change)">
-        </div>
-        <div class="modal-actions">
-            <button class="btn-act" onclick="closeEditModal()" style="background: transparent; color: var(--text-muted);">Cancel</button>
-            <button class="btn-act btn-success" onclick="submitEditAdmin()">Save Changes</button>
-        </div>
+        <div id="adminsList"><div style="text-align: center; color: var(--text-muted); padding: 15px;">Loading resellers...</div></div>
     </div>
 </div>
 
 <script>
     const API_BASE = window.location.origin;
-    let editingAdminUser = '';
-    let adminsGlobalData = [];
+    let resellersGlobalData = [];
     let currentFilter = 'all';
 
     function loadAll() {
         loadAppControl();
-        loadAdmins();
+        loadResellers();
     }
 
     async function loadAppControl() {
         try {
-            const res = await fetch(`${API_BASE}/master/get_app_control`);
+            const res = await fetch(`${API_BASE}/admin/get_app_control`);
             const data = await res.json();
             const badge = document.getElementById('appStatusBadge');
             if (data.status === 'disabled') {
@@ -219,7 +190,7 @@
             alert_msg: status === 'disabled' ? "App is temporarily disabled by Master Admin." : ""
         });
         try {
-            const res = await fetch(`${API_BASE}/master/set_app_control`, { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: body });
+            const res = await fetch(`${API_BASE}/admin/set_app_control`, { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: body });
             const data = await res.json();
             alert(data.msg || "Updated");
             loadAppControl();
@@ -232,7 +203,7 @@
         if (showAlert && (!title || !msg)) return alert("Title aur Message dono bharein!");
         const body = new URLSearchParams({ status: 'active', alert_title: title, alert_msg: msg, show_alert: showAlert ? 'true' : 'false' });
         try {
-            const res = await fetch(`${API_BASE}/master/set_app_control`, { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: body });
+            const res = await fetch(`${API_BASE}/admin/set_app_control`, { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: body });
             const data = await res.json();
             alert(showAlert ? "Alert Broadcasted!" : "Alert Cleared!");
             loadAppControl();
@@ -247,33 +218,33 @@
         });
         const selectedEl = document.getElementById('filter' + filterType.charAt(0).toUpperCase() + filterType.slice(1));
         if (selectedEl) selectedEl.classList.add('active-filter');
-        renderAdminsList();
+        renderResellersList();
     }
 
-    async function loadAdmins() {
+    async function loadResellers() {
         try {
-            const res = await fetch(`${API_BASE}/master/get_admins`);
-            adminsGlobalData = await res.json();
-            processAndRenderAdmins();
+            const res = await fetch(`${API_BASE}/admin/get_resellers`);
+            resellersGlobalData = await res.json();
+            processAndRenderResellers();
         } catch (e) {
             document.getElementById('adminsList').innerHTML = '<div style="color:red; text-align:center;">Load fail</div>';
         }
     }
 
-    function processAndRenderAdmins() {
+    function processAndRenderResellers() {
         const now = Date.now();
-        let total = adminsGlobalData.length;
+        let total = resellersGlobalData.length;
         let active = 0, blocked = 0, expired = 0;
 
-        adminsGlobalData.forEach(a => {
-            const exp = a.expiry_timestamp || 0;
+        resellersGlobalData.forEach(r => {
+            const exp = r.expiry_timestamp || 0;
             const remDays = exp > 0 ? Math.ceil((exp - now) / (1000 * 60 * 60 * 24)) : 0;
             const isExp = remDays <= 0 && exp > 0;
-            let status = a.status || 'active';
+            let status = r.status || 'active';
             if (isExp) status = 'expired';
 
             if (status === 'active') active++;
-            else if (status === 'blocked') blocked++;
+            else if (status === 'blocked' || status === 'frozen') blocked++;
             else if (status === 'expired') expired++;
         });
 
@@ -282,57 +253,57 @@
         document.getElementById('statBlocked').innerText = blocked;
         document.getElementById('statExpired').innerText = expired;
 
-        renderAdminsList();
+        renderResellersList();
     }
 
-    function renderAdminsList() {
+    function renderResellersList() {
         const container = document.getElementById('adminsList');
         const now = Date.now();
 
-        let filteredAdmins = adminsGlobalData.filter(a => {
-            const exp = a.expiry_timestamp || 0;
+        let filtered = resellersGlobalData.filter(r => {
+            const exp = r.expiry_timestamp || 0;
             const remDays = exp > 0 ? Math.ceil((exp - now) / (1000 * 60 * 60 * 24)) : 0;
             const isExp = remDays <= 0 && exp > 0;
-            let status = a.status || 'active';
+            let status = r.status || 'active';
             if (isExp) status = 'expired';
 
             if (currentFilter === 'all') return true;
             if (currentFilter === 'active') return status === 'active';
-            if (currentFilter === 'blocked') return status === 'blocked';
+            if (currentFilter === 'blocked') return status === 'blocked' || status === 'frozen';
             if (currentFilter === 'expired') return status === 'expired';
             return true;
         });
 
-        document.getElementById('adminsListTitle').innerText = `📋 REGISTERED ADMINS (${currentFilter.toUpperCase()})`;
+        document.getElementById('adminsListTitle').innerText = `📋 REGISTERED RESELLERS (${currentFilter.toUpperCase()})`;
 
-        if (filteredAdmins.length === 0) {
-            container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 15px;">Is filter me koi admin nahi hai.</div>';
+        if (filtered.length === 0) {
+            container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 15px;">Is filter me koi reseller nahi hai.</div>';
             return;
         }
 
         let html = '';
-        filteredAdmins.forEach(a => {
-            const exp = a.expiry_timestamp || 0;
+        filtered.forEach(r => {
+            const exp = r.expiry_timestamp || 0;
             const remDays = exp > 0 ? Math.ceil((exp - now) / (1000 * 60 * 60 * 24)) : 0;
             const isExp = remDays <= 0 && exp > 0;
-            let status = a.status || 'active';
+            let status = r.status || 'active';
             if (isExp) status = 'expired';
 
             let badgeClass = 'badge-active';
             let badgeText = remDays + ' DIN BAAKI';
-            if (status === 'blocked') { badgeClass = 'badge-blocked'; badgeText = 'BLOCKED'; }
+            if (status === 'blocked' || status === 'frozen') { badgeClass = 'badge-blocked'; badgeText = 'BLOCKED'; }
             else if (status === 'expired' || isExp) { badgeClass = 'badge-expired'; badgeText = 'EXPIRED'; }
             else if (exp === 0) { badgeText = 'LIFETIME'; }
 
             html += `
                 <div class="admin-item">
                     <div>
-                        <div class="admin-name">👑 ${String(a.username).toUpperCase()} <span class="badge ${badgeClass}">${badgeText}</span></div>
-                        <div class="admin-sub">Password: <b>${a.password}</b></div>
+                        <div class="admin-name">👤 ${String(r.username).toUpperCase()} <span class="badge ${badgeClass}">${badgeText}</span></div>
+                        <div class="admin-sub">Password: <b>${r.password}</b> | Wallet: <b>₹${(r.balance||0).toFixed(2)}</b></div>
                     </div>
                     <div>
-                        <button class="btn-small" style="background:#1B223C; color:#38BDF8;" onclick="openEditAdmin('${a.username}', '${a.password}', '${a.status || 'active'}')">EDIT</button>
-                        <button class="btn-small" style="background:#2D151B; color:#EF4444;" onclick="deleteAdmin('${a.username}')">DEL</button>
+                        <button class="btn-small" style="background:#132A22; color:#10B981;" onclick="rechargeReseller('${r.username}')">+ RECHARGE</button>
+                        <button class="btn-small" style="background:#2D151B; color:#EF4444;" onclick="deleteReseller('${r.username}')">DEL</button>
                     </div>
                 </div>
             `;
@@ -340,73 +311,44 @@
         container.innerHTML = html;
     }
 
-    async function createAdmin(e) {
+    async function createReseller(e) {
         e.preventDefault();
-        const u = document.getElementById('new_admin_user').value.trim().toLowerCase();
-        const p = document.getElementById('new_admin_pass').value.trim();
-        const dur = document.getElementById('new_admin_duration').value;
-        
-        let daysVal = 30;
-        if (dur === 'never') daysVal = 36500;
-        else if (dur === '1d') daysVal = 1;
-        else if (dur === '7d') daysVal = 7;
-        else if (dur === '30d') daysVal = 30;
-
-        const body = new URLSearchParams({ username: u, password: p, days: daysVal });
+        const body = new URLSearchParams({
+            username: document.getElementById('new_res_user').value.trim().toLowerCase(),
+            password: document.getElementById('new_res_pass').value.trim(),
+            balance: document.getElementById('new_res_bal').value,
+            days: document.getElementById('new_res_days').value
+        });
         try {
-            const res = await fetch(`${API_BASE}/master/create_admin`, { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: body });
+            const res = await fetch(`${API_BASE}/admin/create_reseller`, { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: body });
             const data = await res.json();
             alert(data.msg || "Created!");
             if (data.success) {
-                document.getElementById('new_admin_user').value = '';
-                document.getElementById('new_admin_pass').value = '';
-                loadAdmins();
+                document.getElementById('new_res_user').value = '';
+                document.getElementById('new_res_pass').value = '';
+                loadResellers();
             }
-        } catch (e) { alert("Error creating admin"); }
+        } catch (e) { alert("Error creating reseller"); }
     }
 
-    function openEditAdmin(user, pass, status) {
-        editingAdminUser = user;
-        document.getElementById('editAdminName').innerText = user.toUpperCase();
-        document.getElementById('editAdminPass').value = '';
-        document.getElementById('editAdminStatus').value = status;
-        document.getElementById('editAdminDays').value = '';
-        document.getElementById('editAdminModal').style.display = 'flex';
-    }
-
-    function closeEditModal() {
-        document.getElementById('editAdminModal').style.display = 'none';
-        editingAdminUser = '';
-    }
-
-    async function submitEditAdmin() {
-        const pass = document.getElementById('editAdminPass').value.trim();
-        const status = document.getElementById('editAdminStatus').value;
-        const days = document.getElementById('editAdminDays').value.trim();
-
-        const body = new URLSearchParams({
-            username: editingAdminUser,
-            password: pass,
-            status: status,
-            days: days
-        });
-
+    async function rechargeReseller(user) {
+        const amt = prompt(`Reseller [${user.toUpperCase()}] ke wallet me kitna rupya add karna hai?`, "500");
+        if (!amt || parseFloat(amt) <= 0) return;
+        const body = new URLSearchParams({ username: user, amount: amt });
         try {
-            const res = await fetch(`${API_BASE}/master/edit_admin`, { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: body });
+            const res = await fetch(`${API_BASE}/admin/recharge_reseller`, { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: body });
             const data = await res.json();
-            alert(data.msg || "Updated!");
-            closeEditModal();
-            loadAdmins();
-        } catch (e) { alert("Error updating admin"); }
+            if (data.success) { alert("Recharged!"); loadResellers(); }
+        } catch (e) { alert("Error!"); }
     }
 
-    async function deleteAdmin(user) {
-        if (!confirm(`Admin [${user.toUpperCase()}] ko permanently delete karein?`)) return;
+    async function deleteReseller(user) {
+        if (!confirm(`Reseller [${user.toUpperCase()}] ko permanently delete karein?`)) return;
         const body = new URLSearchParams({ username: user });
         try {
-            const res = await fetch(`${API_BASE}/master/delete_admin`, { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: body });
+            const res = await fetch(`${API_BASE}/admin/delete_reseller`, { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: body });
             const data = await res.json();
-            if (data.success) { alert("Deleted!"); loadAdmins(); }
+            if (data.success) { alert("Deleted!"); loadResellers(); }
         } catch (e) { alert("Error!"); }
     }
 
