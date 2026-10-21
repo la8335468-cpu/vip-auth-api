@@ -41,6 +41,7 @@
             margin: 0 auto;
         }
 
+        /* 1. LOGIN SCREEN (Default Visible) */
         #loginView {
             max-width: 380px;
             margin: 80px auto;
@@ -49,6 +50,7 @@
             border-radius: 16px;
             padding: 28px 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: block;
         }
 
         .login-title {
@@ -120,7 +122,6 @@
             color: #7983A8;
         }
 
-        /* Stats Grid - Clickable */
         .stats-grid-2x2 {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -145,19 +146,8 @@
             background-color: #1a1f3c;
         }
 
-        .stat-box-title {
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--text-muted);
-            text-transform: uppercase;
-        }
-
-        .stat-box-val {
-            font-size: 20px;
-            font-weight: 800;
-            color: #FFFFFF;
-            margin-top: 6px;
-        }
+        .stat-box-title { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+        .stat-box-val { font-size: 20px; font-weight: 800; color: #FFFFFF; margin-top: 6px; }
 
         .card {
             background-color: var(--card);
@@ -177,18 +167,8 @@
             margin-bottom: 14px;
         }
 
-        .input-group {
-            margin-bottom: 12px;
-        }
-
-        .input-group label {
-            display: block;
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-bottom: 6px;
-            font-weight: 600;
-        }
-
+        .input-group { margin-bottom: 12px; }
+        .input-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; }
         .input-group input, .input-group select {
             width: 100%;
             background-color: var(--input);
@@ -253,89 +233,38 @@
             margin-bottom: 6px;
         }
 
-        .key-code {
-            font-family: monospace;
-            font-size: 14px;
-            font-weight: 700;
-            color: #60A5FA;
-        }
+        .key-code { font-family: monospace; font-size: 14px; font-weight: 700; color: #60A5FA; }
 
-        .badge-status {
-            font-size: 10px;
-            font-weight: 700;
-            padding: 2px 7px;
-            border-radius: 5px;
-        }
-
+        .badge-status { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 5px; }
         .st-unused { background: rgba(56, 189, 248, 0.15); color: #38BDF8; }
         .st-active { background: rgba(16, 185, 129, 0.15); color: #10B981; }
         .st-expired { background: rgba(239, 68, 68, 0.15); color: #EF4444; }
         .st-frozen { background: rgba(245, 158, 11, 0.15); color: #F59E0B; }
 
-        .key-actions-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-top: 10px;
-            justify-content: flex-end;
-        }
-
-        .btn-act {
-            border: none;
-            padding: 6px 11px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
+        .key-actions-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; justify-content: flex-end; }
+        .btn-act { border: none; padding: 6px 11px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; }
         .btn-copy { background: rgba(79, 107, 255, 0.2); color: #818CF8; }
         .btn-reset { background: rgba(245, 158, 11, 0.2); color: #F59E0B; }
         .btn-edit { background: rgba(56, 189, 248, 0.2); color: #38BDF8; }
         .btn-del { background: rgba(239, 68, 68, 0.2); color: #EF4444; }
 
-        .profile-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 11px 0;
-            border-bottom: 1px solid var(--border);
-            font-size: 13px;
-        }
+        .profile-row { display: flex; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
         .profile-row:last-child { border-bottom: none; }
         .profile-title { color: var(--text-muted); }
         .profile-value { font-weight: 700; color: #FFFFFF; }
 
         .modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.75);
-            justify-content: center;
-            align-items: center;
-            padding: 16px;
-            z-index: 200;
+            display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75);
+            justify-content: center; align-items: center; padding: 16px; z-index: 200;
         }
-        .modal-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 22px;
-            width: 100%;
-            max-width: 360px;
-        }
+        .modal-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 22px; width: 100%; max-width: 360px; }
         .modal-card h3 { font-size: 15px; margin-bottom: 14px; color: #60A5FA; }
         .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
 
         .bottom-nav {
-            position: fixed;
-            bottom: 0; left: 0; right: 0;
-            height: 65px;
-            background-color: #121528;
-            border-top: 1px solid var(--border);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            z-index: 100;
+            position: fixed; bottom: 0; left: 0; right: 0; height: 65px;
+            background-color: #121528; border-top: 1px solid var(--border);
+            display: none; justify-content: space-around; align-items: center; z-index: 100;
         }
         .nav-item {
             flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -368,7 +297,7 @@
         </form>
     </div>
 
-    <!-- DASHBOARD VIEW -->
+    <!-- DASHBOARD VIEW (Initially Hidden) -->
     <div id="dashView" style="display: none;">
 
         <div class="panel-header">
@@ -413,10 +342,8 @@
             </div>
         </div>
 
-        <!-- FOLDER 2: KEYS (CLICKABLE STATS FOR FILTERING) -->
+        <!-- FOLDER 2: KEYS -->
         <div id="tabKeysView" style="display: none;">
-            
-            <!-- STATS COUNTER BOXES (Clickable Filters) -->
             <div class="stats-grid-2x2">
                 <div class="stat-box active-filter" id="filterAll" onclick="setFilter('all')">
                     <span class="stat-box-title">Total Keys</span>
@@ -444,7 +371,6 @@
                 ⚡ GENERATE 10 MINUTES TRIAL KEY (FREE ₹0)
             </button>
 
-            <!-- KEY GENERATE CARD -->
             <div class="card">
                 <div class="card-header-title">
                     <span>🔑 Generate Regular VIP Key</span>
@@ -479,7 +405,6 @@
                 </form>
             </div>
 
-            <!-- KEYS LIST -->
             <div class="card">
                 <div class="card-header-title">
                     <span id="keysListTitle">My Generated Keys (All)</span>
@@ -493,18 +418,9 @@
         <div id="tabProfileView" style="display: none;">
             <div class="card">
                 <div class="card-header-title">👤 Reseller Profile</div>
-                <div class="profile-row">
-                    <span class="profile-title">Username:</span>
-                    <span class="profile-value" id="profUsername">--</span>
-                </div>
-                <div class="profile-row">
-                    <span class="profile-title">Account Status:</span>
-                    <span class="profile-value" style="color: #10B981;">ACTIVE</span>
-                </div>
-                <div class="profile-row">
-                    <span class="profile-title">Account Validity:</span>
-                    <span class="profile-value" id="profExpiry">--</span>
-                </div>
+                <div class="profile-row"><span class="profile-title">Username:</span><span class="profile-value" id="profUsername">--</span></div>
+                <div class="profile-row"><span class="profile-title">Account Status:</span><span class="profile-value" style="color: #10B981;">ACTIVE</span></div>
+                <div class="profile-row"><span class="profile-title">Account Validity:</span><span class="profile-value" id="profExpiry">--</span></div>
             </div>
 
             <div class="card">
@@ -579,17 +495,49 @@
 
     function doLogout() {
         localStorage.removeItem('reseller_user');
-        window.location.replace('/');
+        currentUser = '';
+        document.getElementById('dashView').style.display = 'none';
+        document.getElementById('bottomNavBar').style.display = 'none';
+        document.getElementById('loginView').style.display = 'block';
     }
 
-    if (!currentUser) {
-        window.location.replace('/');
+    if (currentUser) {
+        showDashboard();
     } else {
+        showLogin();
+    }
+
+    function showLogin() {
+        document.getElementById('loginView').style.display = 'block';
+        document.getElementById('dashView').style.display = 'none';
+        document.getElementById('bottomNavBar').style.display = 'none';
+    }
+
+    function showDashboard() {
+        document.getElementById('loginView').style.display = 'none';
+        document.getElementById('dashView').style.display = 'block';
+        document.getElementById('bottomNavBar').style.display = 'flex';
         document.getElementById('dispUser').innerText = `👤 ${currentUser.toUpperCase()}`;
         document.getElementById('profUsername').innerText = `@${currentUser.toUpperCase()}`;
         makeRandomKey();
         onQuickExpiryChange();
         loadDashboard();
+    }
+
+    async function handleLogin(e) {
+        e.preventDefault();
+        const user = document.getElementById('log_user').value.trim().toLowerCase();
+        const pass = document.getElementById('log_pass').value.trim();
+        const body = new URLSearchParams({ username: user, password: pass });
+        try {
+            const res = await fetch(`${API_BASE}/reseller/login`, { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: body });
+            const data = await res.json();
+            if (data.success) {
+                currentUser = user;
+                localStorage.setItem('reseller_user', user);
+                showDashboard();
+            } else { alert(data.msg || "Invalid User or Password!"); }
+        } catch (err) { alert("Server connect error!"); }
     }
 
     function switchFolder(folder) {
@@ -606,19 +554,14 @@
         document.getElementById('navItemProfile').innerHTML = folder === 'profile' ? '<div class="nav-btn-pill"><span>👤</span><span>Profile</span></div>' : '<span style="font-size:16px;">👤</span><span>Profile</span>';
     }
 
-    // Filter Logic for Stats Boxes
     function setFilter(filterType) {
         currentFilter = filterType;
-        
-        // UI highlight update
         ['All', 'Active', 'Blocked', 'Expired', 'Inactive'].forEach(f => {
             const el = document.getElementById('filter' + f);
             if (el) el.classList.remove('active-filter');
         });
-        
         const selectedEl = document.getElementById('filter' + filterType.charAt(0).toUpperCase() + filterType.slice(1));
         if (selectedEl) selectedEl.classList.add('active-filter');
-
         renderKeysList();
     }
 
@@ -659,7 +602,6 @@
             calculatedCost = 3000;
             calculatedPlanName = "30 Days";
         }
-
         document.getElementById('key_cost').value = calculatedCost;
     }
 
@@ -694,7 +636,6 @@
             }
 
             renderTransactions(data.transactions || []);
-            
             allKeysData = data.keys || [];
             processAndRenderKeys();
 
@@ -727,7 +668,6 @@
 
     function processAndRenderKeys() {
         const realServerTime = currentServerTime > 0 ? currentServerTime : Date.now();
-        
         let total = allKeysData.length;
         let active = 0, blocked = 0, expired = 0, inactive = 0;
 
@@ -798,7 +738,7 @@
                         <span class="badge-status ${badgeClass}">${status.toUpperCase()}</span>
                     </div>
                     <div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">
-                        Plan: <b style="color:#fff;">${k.plan || 'Custom'}</b> | Exp: <b style="color:#fff;">${expDisplay}</b><br>
+                        Plan: <b style="color:#fff;">${k.plan || calculatedPlanName}</b> | Exp: <b style="color:#fff;">${expDisplay}</b><br>
                         HWID: <span style="font-family:monospace;">${k.hwid ? k.hwid.slice(0, 18) + '...' : 'Not Bound (Khali)'}</span>
                     </div>
                     <div class="key-actions-row">
@@ -831,9 +771,7 @@
             if (data.success) {
                 alert(`⚡ 10 MIN TRIAL KEY GENERATED!\nKey: ${trialKey}\nCost: ₹0 (Free)`);
                 loadDashboard();
-            } else {
-                alert(data.msg || "Trial generation failed!");
-            }
+            } else { alert(data.msg || "Trial failed!"); }
         } catch (err) { alert("Error generating trial key"); }
     }
 
