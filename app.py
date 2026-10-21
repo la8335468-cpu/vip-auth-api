@@ -8,7 +8,7 @@ from flask import Flask, request, jsonify, send_file
 
 app = Flask(__name__)
 
-# --- BUILT-IN CORS (Zero External Dependency) ---
+# --- BUILT-IN CORS ---
 @app.after_request
 def after_request(response):
     response.headers.add('Access-Control-Allow-Origin', '*')
@@ -16,10 +16,10 @@ def after_request(response):
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
     return response
 
-# --- PEHLE WALE PROJECT KA FIREBASE URL ---
+# --- PURANA FIREBASE URL ---
 FIREBASE_URL = "https://amanmod-91196-default-rtdb.firebaseio.com"
 
-# --- BUILT-IN IST TIME (No pytz needed) ---
+# --- BUILT-IN IST TIME ---
 def get_ist_datetime_str():
     try:
         ist_zone = timezone(timedelta(hours=5, minutes=30))
@@ -61,14 +61,14 @@ def add_transaction(user, tx_type, amount, details):
     tx_data = {
         "timestamp": now_ts,
         "date": get_ist_datetime_str(),
-        "type": tx_type,  # 'debit' ya 'credit'
+        "type": tx_type,
         "amount": float(amount),
         "details": details
     }
     fb_put(f"resellers/{user}/transactions/{now_ts}", tx_data)
 
 
-# --- WEB PAGE ROUTES ---
+# --- 2-PANEL WEB PAGE ROUTES ---
 @app.route('/')
 @app.route('/seller')
 def seller_page():
@@ -273,7 +273,6 @@ def update_contact():
     })
     return jsonify({"success": True, "msg": "WhatsApp aur Telegram links update ho gaye!"})
 
-# KEY GENERATION (Supports Trial, Never/Lifetime, 1h, 2h, 12h, 1d, 7d, 15d, 30d)
 @app.route('/reseller/generate_key', methods=['POST'])
 def reseller_generate_key():
     user = request.form.get('username', '').strip().lower()
@@ -393,7 +392,7 @@ def reseller_delete_key():
 
 
 # =======================================================
-# 3. TARGET ANDROID APP VERIFICATION (/verify)
+# 4. TARGET ANDROID APP VERIFICATION (/verify)
 # =======================================================
 @app.route('/verify', methods=['POST'])
 def verify():
