@@ -84,7 +84,7 @@ def admin_page():
 
 
 # =======================================================
-# 1. MASTER ADMIN APIS (/admin/...)
+# 1. ADMIN PANEL APIS (/admin/...)
 # =======================================================
 
 @app.route('/admin/set_app_control', methods=['POST'])
@@ -392,7 +392,7 @@ def reseller_delete_key():
 
 
 # =======================================================
-# 4. TARGET ANDROID APP VERIFICATION (/verify)
+# 3. TARGET ANDROID APP VERIFICATION (/verify)
 # =======================================================
 @app.route('/verify', methods=['POST'])
 def verify():
