@@ -6,7 +6,7 @@ import urllib.request
 
 app = Flask(__name__)
 
-# Aapka Firebase Realtime Database URL (Purana amanmod wala)
+# Purana amanmod wala Firebase URL
 FIREBASE_URL = "https://amanmod-91196-default-rtdb.firebaseio.com"
 
 def db_get(path):
@@ -40,7 +40,6 @@ def db_patch(path, data):
         print(f"DB Patch Error: {e}")
         return None
 
-# Root URL par seller.html khulega
 @app.route('/')
 def home():
     try:
@@ -49,7 +48,6 @@ def home():
     except Exception as e:
         return f"Seller panel file not found: {e}"
 
-# Agar aapko admin panel alag se kholna ho
 @app.route('/admin')
 def admin_panel():
     try:
@@ -58,7 +56,6 @@ def admin_panel():
     except Exception as e:
         return f"Admin panel file not found: {e}"
 
-# Reseller Login API
 @app.route('/reseller/login', methods=['POST'])
 def reseller_login():
     username = request.form.get('username', '').strip().lower()
@@ -74,7 +71,6 @@ def reseller_login():
             
     return jsonify({"success": False, "msg": "Invalid Username or Password!"})
 
-# Reseller Dashboard Data API
 @app.route('/reseller/data', methods=['GET'])
 def reseller_data():
     username = request.args.get('username', '').strip().lower()
@@ -94,11 +90,13 @@ def reseller_data():
     all_keys = db_get("keys") or {}
     my_keys = []
     for k, info in all_keys.items():
-        if info.get('reseller') == username:
+        if isinstance(info, dict) and info.get('reseller') == username:
             info['key'] = k
             my_keys.append(info)
             
     transactions = reseller_info.get('transactions', [])
+    if not isinstance(transactions, list):
+        transactions = []
     
     return jsonify({
         "success": True,
@@ -111,7 +109,6 @@ def reseller_data():
         "server_time": int(time.time() * 1000)
     })
 
-# Key Generation API (Custom Price Support)
 @app.route('/reseller/generate_key', methods=['POST'])
 def generate_key():
     username = request.form.get('username', '').strip().lower()
@@ -128,7 +125,7 @@ def generate_key():
         return jsonify({"success": False, "msg": "Reseller not found"})
         
     reseller_info = resellers[username]
-    current_balance = reseller_info.get('balance', 0)
+    current_balance = float(reseller_info.get('balance', 0))
     
     cost = 0 if plan == 'trial' else custom_cost
     
@@ -142,6 +139,9 @@ def generate_key():
     new_balance = current_balance - cost
     
     transactions = reseller_info.get('transactions', [])
+    if not isinstance(transactions, list):
+        transactions = []
+        
     tx_entry = {
         "date": time.strftime('%d %b %Y, %I:%M %p'),
         "type": "debit",
@@ -166,7 +166,6 @@ def generate_key():
     
     return jsonify({"success": True, "cost": cost, "new_balance": new_balance, "msg": "Key Generated Successfully!"})
 
-# Edit Key API
 @app.route('/reseller/edit_key', methods=['POST'])
 def edit_key():
     username = request.form.get('username', '').strip().lower()
@@ -179,7 +178,7 @@ def edit_key():
         return jsonify({"success": False, "msg": "Key not found"})
         
     key_info = all_keys[key]
-    if key_info.get('reseller') != username:
+    if not isinstance(key_info, dict) or key_info.get('reseller') != username:
         return jsonify({"success": False, "msg": "Permission denied"})
         
     updates = {}
@@ -191,7 +190,6 @@ def edit_key():
     db_patch(f"keys/{key}", updates)
     return jsonify({"success": True, "msg": "Key Updated Successfully!"})
 
-# Delete Key API
 @app.route('/reseller/delete_key', methods=['POST'])
 def delete_key():
     username = request.form.get('username', '').strip().lower()
@@ -201,13 +199,12 @@ def delete_key():
     if key not in all_keys:
         return jsonify({"success": False, "msg": "Key not found"})
         
-    if all_keys[key].get('reseller') != username:
+    if not isinstance(all_keys[key], dict) or all_keys[key].get('reseller') != username:
         return jsonify({"success": False, "msg": "Permission denied"})
         
     urllib.request.urlopen(urllib.request.Request(f"{FIREBASE_URL}/keys/{key}.json", method='DELETE'))
     return jsonify({"success": True, "msg": "Key Deleted Successfully!"})
 
-# Update Contact Links API
 @app.route('/reseller/update_contact', methods=['POST'])
 def update_contact():
     username = request.form.get('username', '').strip().lower()
