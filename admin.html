@@ -17,13 +17,13 @@
             --text-muted: #8E96B5;
             --border: #222744;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; color-scheme: dark; }
         body { background-color: var(--bg); color: var(--text-main); padding: 16px; min-height: 100vh; }
         .container { max-width: 700px; margin: 0 auto; }
         .card { background-color: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin-bottom: 16px; }
         .input-group { margin-bottom: 12px; }
         .input-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; }
-        .input-group input { width: 100%; background-color: var(--input); border: 1px solid var(--border); color: #fff; padding: 12px; border-radius: 10px; font-size: 13px; outline: none; color-scheme: dark; }
+        .input-group input, .input-group select { width: 100%; background-color: var(--input); border: 1px solid var(--border); color: #fff; padding: 12px; border-radius: 10px; font-size: 13px; outline: none; }
         .btn-submit { width: 100%; background-color: var(--primary); color: #fff; border: none; padding: 13px; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; }
         table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
         th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--border); }
@@ -34,7 +34,6 @@
 <body>
 
 <div class="container">
-    <!-- DIRECT ADMIN DASHBOARD (Login Removed) -->
     <div id="adminDashView">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h2>🛡️ Master Admin Control Panel</h2>
@@ -42,20 +41,38 @@
         </div>
 
         <div class="card">
-            <h3>➕ Add New Reseller</h3>
+            <h3>➕ Create Reseller Account</h3>
             <form onsubmit="addReseller(event)" style="margin-top: 10px;">
-                <div class="input-group"><label>Reseller Username</label><input type="text" id="new_res_user" required></div>
-                <div class="input-group"><label>Password</label><input type="text" id="new_res_pass" required></div>
-                <div class="input-group"><label>Initial Balance (₹)</label><input type="number" id="new_res_bal" value="1000" required></div>
-                <button type="submit" class="btn-submit">CREATE RESELLER</button>
+                <div class="input-group">
+                    <label>Reseller User ID</label>
+                    <input type="text" id="new_res_user" placeholder="Enter reseller ID" required>
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="text" id="new_res_pass" placeholder="Enter password" required>
+                </div>
+                <div class="input-group">
+                    <label>Initial Balance (₹)</label>
+                    <input type="number" id="new_res_bal" value="500" required>
+                </div>
+                <div class="input-group">
+                    <label>Account Validity / Expiry Plan</label>
+                    <select id="new_res_plan" onchange="calculateResellerExpiry()">
+                        <option value="never">Never (Lifetime)</option>
+                        <option value="7d">7 Days</option>
+                        <option value="15d">15 Days</option>
+                        <option value="30d" selected>30 Days</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-submit">CREATE RESELLER ID</button>
             </form>
         </div>
 
         <div class="card">
-            <h3>👥 Manage Resellers</h3>
+            <h3>📋 Registered Resellers (All)</h3>
             <table>
-                <thead><tr><th>Username</th><th>Balance</th><th>Action</th></tr></thead>
-                <tbody id="resellersTableBody"><tr><td colspan="3" style="text-align:center;">Loading...</td></tr></tbody>
+                <thead><tr><th>Username</th><th>Balance</th><th>Expiry</th><th>Action</th></tr></thead>
+                <tbody id="resellersTableBody"><tr><td colspan="4" style="text-align:center;">Loading...</td></tr></tbody>
             </table>
         </div>
     </div>
@@ -63,11 +80,26 @@
 
 <script>
     const API_BASE = window.location.origin;
+    let calculatedExpiryTimestamp = 0;
 
-    // Page khulte hi direct data load hoga bina kisi login ke
     window.onload = function() {
+        calculateResellerExpiry();
         loadAdminData();
     };
+
+    function calculateResellerExpiry() {
+        const val = document.getElementById('new_res_plan').value;
+        const now = Date.now();
+        if (val === 'never') {
+            calculatedExpiryTimestamp = 0;
+        } else if (val === '7d') {
+            calculatedExpiryTimestamp = now + (7 * 24 * 3600 * 1000);
+        } else if (val === '15d') {
+            calculatedExpiryTimestamp = now + (15 * 24 * 3600 * 1000);
+        } else if (val === '30d') {
+            calculatedExpiryTimestamp = now + (30 * 24 * 3600 * 1000);
+        }
+    }
 
     async function loadAdminData() {
         try {
@@ -78,15 +110,20 @@
             let tbody = document.getElementById('resellersTableBody');
             let resellers = data.resellers || {};
             let html = '';
+
             for (let uname in resellers) {
                 let r = resellers[uname];
+                let exp = r.expiry_timestamp || 0;
+                let expStr = exp > 0 ? new Date(exp).toLocaleDateString('en-GB') : 'Lifetime';
+                
                 html += `<tr>
                     <td><b>${uname}</b></td>
                     <td>₹${r.balance || 0}</td>
+                    <td>${expStr}</td>
                     <td><button class="btn-del" onclick="deleteReseller('${uname}')">Delete</button></td>
                 </tr>`;
             }
-            tbody.innerHTML = html || '<tr><td colspan="3" style="text-align:center;">No resellers found</td></tr>';
+            tbody.innerHTML = html || '<tr><td colspan="4" style="text-align:center;">No resellers found</td></tr>';
         } catch (err) {
             console.log("Error:", err);
         }
@@ -94,10 +131,17 @@
 
     async function addReseller(e) {
         e.preventDefault();
-        const u = document.getElementById('new_res_user').value.trim();
+        const u = document.getElementById('new_res_user').value.trim().toLowerCase();
         const p = document.getElementById('new_res_pass').value.trim();
         const b = document.getElementById('new_res_bal').value;
-        const body = new URLSearchParams({ username: u, password: p, balance: b });
+        
+        const body = new URLSearchParams({
+            username: u,
+            password: p,
+            balance: b,
+            expiry_timestamp: calculatedExpiryTimestamp.toString()
+        });
+
         const res = await fetch(`${API_BASE}/admin/add_reseller`, { method: 'POST', body });
         const data = await res.json();
         alert(data.msg);
