@@ -111,7 +111,7 @@
         }
 
         .balance-amount {
-            font-size: 26px;
+            font-size: 22px;
             font-weight: 800;
             color: #FFFFFF;
             margin-bottom: 6px;
@@ -628,7 +628,6 @@
             }
 
             let safeBalance = parseFloat(data.balance || 0);
-            if (isNaN(safeBalance) || safeBalance > 999999999) safeBalance = 0;
             document.getElementById('statBalance').innerText = `₹${safeBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
 
             const exp = data.expiry_timestamp || 0;
