@@ -41,7 +41,6 @@
             margin: 0 auto;
         }
 
-        /* 1. LOGIN SCREEN (Default Visible) */
         #loginView {
             max-width: 380px;
             margin: 80px auto;
@@ -297,7 +296,7 @@
         </form>
     </div>
 
-    <!-- DASHBOARD VIEW (Initially Hidden) -->
+    <!-- DASHBOARD VIEW -->
     <div id="dashView" style="display: none;">
 
         <div class="panel-header">
@@ -386,19 +385,20 @@
                         <label>Expiry Duration / Plan</label>
                         <select id="quick_expiry" onchange="onQuickExpiryChange()">
                             <option value="never">Never (Lifetime)</option>
-                            <option value="1h">1 Hour (₹5)</option>
-                            <option value="2h">2 Hours (₹10)</option>
-                            <option value="12h">12 Hours (₹50)</option>
-                            <option value="1d" selected>1 Day (₹100)</option>
-                            <option value="7d">7 Days (₹700)</option>
-                            <option value="15d">15 Days (₹1,500)</option>
-                            <option value="30d">30 Days (₹3,000)</option>
+                            <option value="1h">1 Hour</option>
+                            <option value="2h">2 Hours</option>
+                            <option value="12h">12 Hours</option>
+                            <option value="1d" selected>1 Day</option>
+                            <option value="7d">7 Days</option>
+                            <option value="15d">15 Days</option>
+                            <option value="30d">30 Days</option>
                         </select>
                     </div>
 
+                    <!-- CUSTOM PRICE EDITABLE INPUT -->
                     <div class="input-group">
-                        <label>Auto Price (₹ - Locked)</label>
-                        <input type="number" id="key_cost" value="100" readonly style="background-color: #121526; color: #34D399; font-weight: 800; cursor: not-allowed;">
+                        <label>Custom Price (₹) - Apni Marzi Se Set Karein</label>
+                        <input type="number" id="key_cost" value="100" min="0" required style="background-color: #080B18; color: #34D399; font-weight: 800;">
                     </div>
 
                     <button type="submit" class="btn-submit">CREATE LICENSE KEY</button>
@@ -486,7 +486,6 @@
     let currentUser = localStorage.getItem('reseller_user') || '';
     let currentServerTime = 0;
     let calculatedTimestamp = 0;
-    let calculatedCost = 100;
     let calculatedPlanName = "1 Day";
     let editingKey = '';
     
@@ -568,41 +567,42 @@
     function onQuickExpiryChange() {
         const val = document.getElementById('quick_expiry').value;
         const now = currentServerTime > 0 ? currentServerTime : Date.now();
+        let defaultCost = 100;
 
         if (val === 'never') {
             calculatedTimestamp = 0;
-            calculatedCost = 3000;
+            defaultCost = 3000;
             calculatedPlanName = "Never (Lifetime)";
         } else if (val === '1h') {
             calculatedTimestamp = now + (3600 * 1000);
-            calculatedCost = 5;
+            defaultCost = 5;
             calculatedPlanName = "1 Hour";
         } else if (val === '2h') {
             calculatedTimestamp = now + (2 * 3600 * 1000);
-            calculatedCost = 10;
+            defaultCost = 10;
             calculatedPlanName = "2 Hours";
         } else if (val === '12h') {
             calculatedTimestamp = now + (12 * 3600 * 1000);
-            calculatedCost = 50;
+            defaultCost = 50;
             calculatedPlanName = "12 Hours";
         } else if (val === '1d') {
             calculatedTimestamp = now + (24 * 3600 * 1000);
-            calculatedCost = 100;
+            defaultCost = 100;
             calculatedPlanName = "1 Day";
         } else if (val === '7d') {
             calculatedTimestamp = now + (7 * 24 * 3600 * 1000);
-            calculatedCost = 700;
+            defaultCost = 700;
             calculatedPlanName = "7 Days";
         } else if (val === '15d') {
             calculatedTimestamp = now + (15 * 24 * 3600 * 1000);
-            calculatedCost = 1500;
+            defaultCost = 1500;
             calculatedPlanName = "15 Days";
         } else if (val === '30d') {
             calculatedTimestamp = now + (30 * 24 * 3600 * 1000);
-            calculatedCost = 3000;
+            defaultCost = 3000;
             calculatedPlanName = "30 Days";
         }
-        document.getElementById('key_cost').value = calculatedCost;
+        document.getElementById('key_cost').value = defaultCost;
     }
 
     function makeRandomKey() {
@@ -778,12 +778,14 @@
     async function generateKey(e) {
         e.preventDefault();
         const key = document.getElementById('new_key').value.trim().toUpperCase();
+        const customPrice = document.getElementById('key_cost').value;
         
         const body = new URLSearchParams({
             username: currentUser,
             key: key,
             expiry_timestamp: calculatedTimestamp.toString(),
-            plan: calculatedPlanName
+            plan: calculatedPlanName,
+            custom_cost: customPrice
         });
 
         try {
