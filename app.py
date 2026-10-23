@@ -6,7 +6,6 @@ import urllib.request
 
 app = Flask(__name__)
 
-# Aapka amanmod wala Firebase URL
 FIREBASE_URL = "https://amanmod-91196-default-rtdb.firebaseio.com"
 
 def db_get(path):
@@ -14,8 +13,7 @@ def db_get(path):
         url = f"{FIREBASE_URL}/{path}.json"
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req) as response:
-            data = json.loads(response.read().decode())
-            return data
+            return json.loads(response.read().decode())
     except Exception as e:
         print(f"DB Get Error: {e}")
         return None
@@ -40,15 +38,13 @@ def db_patch(path, data):
         print(f"DB Patch Error: {e}")
         return None
 
-# --- FRONTEND ROUTES ---
-
 @app.route('/')
 def home():
     try:
         with open("seller.html", "r", encoding="utf-8") as f:
             return render_template_string(f.read())
     except Exception as e:
-        return f"Seller panel file not found: {e}"
+        return f"Seller panel not found: {e}"
 
 @app.route('/admin')
 def admin_panel():
@@ -56,7 +52,7 @@ def admin_panel():
         with open("admin.html", "r", encoding="utf-8") as f:
             return render_template_string(f.read())
     except Exception as e:
-        return f"Admin panel file not found: {e}"
+        return f"Admin panel not found: {e}"
 
 
 # --- RESELLER APIs ---
@@ -74,11 +70,9 @@ def reseller_login():
         r_info = resellers[username]
         
         if r_info.get('password') == password:
-            # Blocked status check
             if r_info.get('status') == 'blocked':
                 return jsonify({"success": False, "msg": "Aapka account Admin dwara Block kar diya gaya hai!"})
                 
-            # Expiry check
             expiry_timestamp = r_info.get('expiry_timestamp', 0)
             if expiry_timestamp > 0 and int(time.time() * 1000) > expiry_timestamp:
                 return jsonify({"success": False, "msg": "Aapke account ki validity khatam ho chuki hai!"})
@@ -98,8 +92,16 @@ def reseller_data():
         return jsonify({"success": False, "msg": "Reseller not found"})
         
     reseller_info = resellers[username]
-    balance = reseller_info.get('balance', 0)
+    
+    # Live Blocked & Expiry check for active sessions
+    if reseller_info.get('status') == 'blocked':
+        return jsonify({"success": False, "msg": "Aapka account Admin dwara Block kar diya gaya hai!"})
+        
     expiry_timestamp = reseller_info.get('expiry_timestamp', 0)
+    if expiry_timestamp > 0 and int(time.time() * 1000) > expiry_timestamp:
+        return jsonify({"success": False, "msg": "Aapke account ki validity khatam ho chuki hai!"})
+
+    balance = reseller_info.get('balance', 0)
     whatsapp = reseller_info.get('whatsapp', '')
     telegram = reseller_info.get('telegram', '')
     
@@ -142,8 +144,10 @@ def generate_key():
         return jsonify({"success": False, "msg": "Reseller not found"})
         
     reseller_info = resellers[username]
+    if reseller_info.get('status') == 'blocked':
+        return jsonify({"success": False, "msg": "Aapka account blocked hai!"})
+
     current_balance = float(reseller_info.get('balance', 0))
-    
     cost = 0 if plan == 'trial' else custom_cost
     
     if current_balance < cost:
@@ -154,18 +158,16 @@ def generate_key():
         return jsonify({"success": False, "msg": "Yeh key pehle se bani hui hai!"})
         
     new_balance = current_balance - cost
-    
     transactions = reseller_info.get('transactions', [])
     if not isinstance(transactions, list):
         transactions = []
         
-    tx_entry = {
+    transactions.insert(0, {
         "date": time.strftime('%d %b %Y, %I:%M %p'),
         "type": "debit",
         "amount": cost,
         "details": f"Generated key: {key} ({plan})"
-    }
-    transactions.insert(0, tx_entry)
+    })
     
     key_data = {
         "reseller": username,
@@ -175,11 +177,7 @@ def generate_key():
         "hwid": ""
     }
     db_put(f"keys/{key}", key_data)
-    
-    db_patch(f"resellers/{username}", {
-        "balance": new_balance,
-        "transactions": transactions
-    })
+    db_patch(f"resellers/{username}", {"balance": new_balance, "transactions": transactions})
     
     return jsonify({"success": True, "cost": cost, "new_balance": new_balance, "msg": "Key Generated Successfully!"})
 
@@ -228,10 +226,7 @@ def update_contact():
     whatsapp = request.form.get('whatsapp', '').strip()
     telegram = request.form.get('telegram', '').strip()
     
-    db_patch(f"resellers/{username}", {
-        "whatsapp": whatsapp,
-        "telegram": telegram
-    })
+    db_patch(f"resellers/{username}", {"whatsapp": whatsapp, "telegram": telegram})
     return jsonify({"success": True, "msg": "Contact Links Updated Successfully!"})
 
 
