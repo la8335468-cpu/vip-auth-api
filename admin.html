@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master Admin Panel</title>
+    <title>Master Control Panel</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -18,14 +18,38 @@
             --border: #222744;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; color-scheme: dark; }
-        body { background-color: var(--bg); color: var(--text-main); padding: 16px; min-height: 100vh; }
-        .container { max-width: 700px; margin: 0 auto; }
-        .card { background-color: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin-bottom: 16px; }
-        .input-group { margin-bottom: 12px; }
-        .input-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; }
-        .input-group input, .input-group select { width: 100%; background-color: var(--input); border: 1px solid var(--border); color: #fff; padding: 12px; border-radius: 10px; font-size: 13px; outline: none; }
-        .btn-submit { width: 100%; background-color: var(--primary); color: #fff; border: none; padding: 13px; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; }
-        table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+        body { background-color: var(--bg); color: var(--text-main); padding: 14px; min-height: 100vh; }
+        .container { max-width: 500px; margin: 0 auto; }
+        
+        .card {
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 14px;
+        }
+
+        .header-card { display: flex; justify-content: space-between; align-items: center; }
+        .refresh-btn { background: transparent; border: 1px solid var(--border); color: #60A5FA; padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; }
+
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+        .stat-box { background-color: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
+        .stat-title { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+        .stat-val { font-size: 20px; font-weight: 800; color: #fff; margin-top: 4px; }
+
+        .kill-switch-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .btn-crash { background-color: var(--danger); color: #fff; border: none; padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+        .btn-activate { background-color: var(--success); color: #fff; border: none; padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+
+        .input-group { margin-bottom: 10px; }
+        .input-group label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 4px; font-weight: 600; }
+        .input-group input, .input-group select { width: 100%; background-color: var(--input); border: 1px solid var(--border); color: #fff; padding: 11px; border-radius: 10px; font-size: 13px; outline: none; }
+
+        .btn-primary { width: 100%; background-color: #38BDF8; color: #0E1022; border: none; padding: 12px; border-radius: 10px; font-weight: 800; cursor: pointer; }
+        .btn-create { width: 100%; background: linear-gradient(135deg, #4F6BFF, #3b56db); color: #fff; border: none; padding: 13px; border-radius: 10px; font-weight: 800; cursor: pointer; margin-top: 6px; }
+        .btn-clear { background: transparent; border: 1px solid var(--border); color: var(--danger); padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer; width: 100%; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
         th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--border); }
         th { color: var(--text-muted); }
         .btn-del { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: 700; }
@@ -34,125 +58,207 @@
 <body>
 
 <div class="container">
-    <div id="adminDashView">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2>🛡️ Master Admin Control Panel</h2>
-            <button class="btn-submit" style="width: auto; padding: 6px 14px; font-size: 12px;" onclick="loadAdminData()">🔄 Refresh</button>
-        </div>
 
-        <div class="card">
-            <h3>➕ Create Reseller Account</h3>
-            <form onsubmit="addReseller(event)" style="margin-top: 10px;">
-                <div class="input-group">
-                    <label>Reseller User ID</label>
-                    <input type="text" id="new_res_user" placeholder="Enter reseller ID" required>
-                </div>
-                <div class="input-group">
-                    <label>Password</label>
-                    <input type="text" id="new_res_pass" placeholder="Enter password" required>
-                </div>
-                <div class="input-group">
-                    <label>Initial Balance (₹)</label>
-                    <input type="number" id="new_res_bal" value="500" required>
-                </div>
-                <div class="input-group">
-                    <label>Account Validity / Expiry Plan</label>
-                    <select id="new_res_plan" onchange="calculateResellerExpiry()">
-                        <option value="never">Never (Lifetime)</option>
-                        <option value="7d">7 Days</option>
-                        <option value="15d">15 Days</option>
-                        <option value="30d" selected>30 Days</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn-submit">CREATE RESELLER ID</button>
-            </form>
-        </div>
+    <!-- MASTER CONTROL HEADER -->
+    <div class="card header-card">
+        <h3 style="color: #60A5FA; font-size: 16px;">👑 MASTER CONTROL</h3>
+        <button class="refresh-btn" onclick="loadData()">🔄 REFRESH</button>
+    </div>
 
-        <div class="card">
-            <h3>📋 Registered Resellers (All)</h3>
-            <table>
-                <thead><tr><th>Username</th><th>Balance</th><th>Expiry</th><th>Action</th></tr></thead>
-                <tbody id="resellersTableBody"><tr><td colspan="4" style="text-align:center;">Loading...</td></tr></tbody>
-            </table>
+    <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px; padding-left: 4px;" id="appStatusText">
+        APP STATUS: CHECKING...
+    </div>
+
+    <!-- STATS COUNTERS -->
+    <div class="stats-grid">
+        <div class="stat-box"><div class="stat-title">Total Resellers</div><div class="stat-val" id="statTotal" style="color: #60A5FA;">0</div></div>
+        <div class="stat-box"><div class="stat-title">Active</div><div class="stat-val" id="statActive" style="color: var(--success);">0</div></div>
+        <div class="stat-box"><div class="stat-title">Blocked</div><div class="stat-val" id="statBlocked" style="color: #F59E0B;">0</div></div>
+        <div class="stat-box"><div class="stat-title">Expired</div><div class="stat-val" id="statExpired" style="color: var(--danger);">0</div></div>
+    </div>
+
+    <!-- APP REMOTE KILL-SWITCH -->
+    <div class="card">
+        <div style="font-size: 12px; font-weight: 700; margin-bottom: 10px; color: var(--text-muted);">🛡️ APP REMOTE KILL-SWITCH</div>
+        <div class="kill-switch-row">
+            <button class="btn-crash" onclick="setAppStatus('crash')">🛑 CRASH APP</button>
+            <button class="btn-activate" onclick="setAppStatus('active')">✅ ACTIVATE</button>
         </div>
     </div>
+
+    <!-- BROADCAST LIVE ALERT -->
+    <div class="card">
+        <div style="font-size: 12px; font-weight: 700; margin-bottom: 10px; color: var(--text-muted);">📢 BROADCAST LIVE ALERT</div>
+        <form onsubmit="sendAlert(event)">
+            <div class="input-group"><input type="text" id="alertTitle" placeholder="Alert Title (e.g. Notice)" required></div>
+            <div class="input-group"><input type="text" id="alertMsg" placeholder="Alert Message (e.g. Maintenance)" required></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button type="submit" class="btn-primary">SEND ALERT</button>
+                <button type="button" class="btn-clear" onclick="clearAlert()">CLEAR ALERT</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- CREATE RESELLER ACCOUNT -->
+    <div class="card">
+        <div style="font-size: 12px; font-weight: 700; margin-bottom: 10px; color: var(--text-muted);">👤 CREATE RESELLER ACCOUNT</div>
+        <form onsubmit="createReseller(event)">
+            <div class="input-group"><input type="text" id="resUser" placeholder="Reseller User ID" required></div>
+            <div class="input-group"><input type="text" id="resPass" placeholder="Password" required></div>
+            <div class="input-group"><input type="number" id="resBal" value="500" placeholder="Initial Balance" required></div>
+            
+            <div class="input-group">
+                <label>Validity Input Mode</label>
+                <select id="validityMode" onchange="toggleValidityInput()">
+                    <option value="days">Days Likhein (e.g. 30 Days)</option>
+                    <option value="date">Calendar Date Select Karein</option>
+                </select>
+            </div>
+
+            <div class="input-group" id="daysInputBox">
+                <input type="number" id="resDays" value="30" placeholder="Validity Days">
+            </div>
+
+            <div class="input-group" id="dateInputBox" style="display: none;">
+                <input type="date" id="resDate">
+            </div>
+
+            <button type="submit" class="btn-create">CREATE RESELLER ID</button>
+        </form>
+    </div>
+
+    <!-- REGISTERED RESELLERS -->
+    <div class="card">
+        <div style="font-size: 12px; font-weight: 700; margin-bottom: 10px; color: var(--text-muted);">📋 REGISTERED RESELLERS (ALL)</div>
+        <table>
+            <thead><tr><th>User</th><th>Bal</th><th>Expiry</th><th>Action</th></tr></thead>
+            <tbody id="resellersTable"><tr><td colspan="4" style="text-align:center; color: var(--text-muted);">Loading...</td></tr></tbody>
+        </table>
+    </div>
+
 </div>
 
 <script>
     const API_BASE = window.location.origin;
-    let calculatedExpiryTimestamp = 0;
 
     window.onload = function() {
-        calculateResellerExpiry();
-        loadAdminData();
+        loadData();
     };
 
-    function calculateResellerExpiry() {
-        const val = document.getElementById('new_res_plan').value;
-        const now = Date.now();
-        if (val === 'never') {
-            calculatedExpiryTimestamp = 0;
-        } else if (val === '7d') {
-            calculatedExpiryTimestamp = now + (7 * 24 * 3600 * 1000);
-        } else if (val === '15d') {
-            calculatedExpiryTimestamp = now + (15 * 24 * 3600 * 1000);
-        } else if (val === '30d') {
-            calculatedExpiryTimestamp = now + (30 * 24 * 3600 * 1000);
+    function toggleValidityInput() {
+        const mode = document.getElementById('validityMode').value;
+        if (mode === 'days') {
+            document.getElementById('daysInputBox').style.display = 'block';
+            document.getElementById('dateInputBox').style.display = 'none';
+        } else {
+            document.getElementById('daysInputBox').style.display = 'none';
+            document.getElementById('dateInputBox').style.display = 'block';
         }
     }
 
-    async function loadAdminData() {
+    async function loadData() {
         try {
             const res = await fetch(`${API_BASE}/admin/data`);
             const data = await res.json();
             if (!data.success) return;
 
-            let tbody = document.getElementById('resellersTableBody');
+            let status = data.control?.status || 'active';
+            document.getElementById('appStatusText').innerText = `APP STATUS: ${status.toUpperCase()}`;
+
             let resellers = data.resellers || {};
+            let total = 0, active = 0, blocked = 0, expired = 0;
+            let tbody = document.getElementById('resellersTable');
             let html = '';
+            let now = data.server_time || Date.now();
 
             for (let uname in resellers) {
                 let r = resellers[uname];
+                total++;
                 let exp = r.expiry_timestamp || 0;
-                let expStr = exp > 0 ? new Date(exp).toLocaleDateString('en-GB') : 'Lifetime';
-                
-                html += `<tr>
-                    <td><b>${uname}</b></td>
-                    <td>₹${r.balance || 0}</td>
-                    <td>${expStr}</td>
-                    <td><button class="btn-del" onclick="deleteReseller('${uname}')">Delete</button></td>
-                </tr>`;
+                let isExp = exp > 0 && now > exp;
+
+                if (isExp) expired++;
+                else active++;
+
+                let expDate = exp > 0 ? new Date(exp).toLocaleDateString('en-GB') : 'Lifetime';
+
+                html += `
+                    <tr>
+                        <td><b>${uname}</b></td>
+                        <td>₹${r.balance || 0}</td>
+                        <td>${expDate}</td>
+                        <td><button class="btn-del" onclick="deleteReseller('${uname}')">Del</button></td>
+                    </tr>
+                `;
             }
-            tbody.innerHTML = html || '<tr><td colspan="4" style="text-align:center;">No resellers found</td></tr>';
+
+            document.getElementById('statTotal').innerText = total;
+            document.getElementById('statActive').innerText = active;
+            document.getElementById('statBlocked').innerText = blocked;
+            document.getElementById('statExpired').innerText = expired;
+
+            tbody.innerHTML = html || '<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">No resellers found</td></tr>';
         } catch (err) {
-            console.log("Error:", err);
+            console.log("Error loading data:", err);
         }
     }
 
-    async function addReseller(e) {
-        e.preventDefault();
-        const u = document.getElementById('new_res_user').value.trim().toLowerCase();
-        const p = document.getElementById('new_res_pass').value.trim();
-        const b = document.getElementById('new_res_bal').value;
-        
-        const body = new URLSearchParams({
-            username: u,
-            password: p,
-            balance: b,
-            expiry_timestamp: calculatedExpiryTimestamp.toString()
-        });
+    async function setAppStatus(status) {
+        const body = new URLSearchParams({ status });
+        const res = await fetch(`${API_BASE}/admin/set_status`, { method: 'POST', body });
+        const data = await res.json();
+        alert(data.msg);
+        loadData();
+    }
 
+    async function sendAlert(e) {
+        e.preventDefault();
+        const title = document.getElementById('alertTitle').value.trim();
+        const msg = document.getElementById('alertMsg').value.trim();
+        const body = new URLSearchParams({ title, msg });
+        const res = await fetch(`${API_BASE}/admin/send_alert`, { method: 'POST', body });
+        const data = await res.json();
+        alert(data.msg);
+    }
+
+    async function clearAlert() {
+        const body = new URLSearchParams({ title: '', msg: '' });
+        await fetch(`${API_BASE}/admin/send_alert`, { method: 'POST', body });
+        document.getElementById('alertTitle').value = '';
+        document.getElementById('alertMsg').value = '';
+        alert("Alert Cleared!");
+    }
+
+    async function createReseller(e) {
+        e.preventDefault();
+        const username = document.getElementById('resUser').value.trim().toLowerCase();
+        const password = document.getElementById('resPass').value.trim();
+        const balance = document.getElementById('resBal').value;
+        const mode = document.getElementById('validityMode').value;
+        
+        let expiry_timestamp = 0;
+        if (mode === 'days') {
+            let days = parseInt(document.getElementById('resDays').value) || 30;
+            expiry_timestamp = Date.now() + (days * 24 * 3600 * 1000);
+        } else {
+            let dateVal = document.getElementById('resDate').value;
+            if (dateVal) {
+                expiry_timestamp = new Date(dateVal).getTime();
+            }
+        }
+
+        const body = new URLSearchParams({ username, password, balance, expiry_timestamp: expiry_timestamp.toString() });
         const res = await fetch(`${API_BASE}/admin/add_reseller`, { method: 'POST', body });
         const data = await res.json();
         alert(data.msg);
-        loadAdminData();
+        loadData();
     }
 
     async function deleteReseller(username) {
-        if (!confirm(`Delete reseller ${username}?`)) return;
+        if (!confirm(`Delete reseller [${username}]?`)) return;
         const body = new URLSearchParams({ username });
         await fetch(`${API_BASE}/admin/delete_reseller`, { method: 'POST', body });
-        loadAdminData();
+        loadData();
     }
 </script>
 
