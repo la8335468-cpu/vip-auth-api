@@ -6,7 +6,7 @@ import urllib.request
 
 app = Flask(__name__)
 
-# Aapka Firebase Realtime Database URL
+# Aapka Firebase Realtime Database URL (Purana amanmod wala)
 FIREBASE_URL = "https://amanmod-91196-default-rtdb.firebaseio.com"
 
 def db_get(path):
@@ -40,9 +40,23 @@ def db_patch(path, data):
         print(f"DB Patch Error: {e}")
         return None
 
+# Root URL par seller.html khulega
 @app.route('/')
 def home():
-    return "VIP Auth & Reseller API is Running Successfully!"
+    try:
+        with open("seller.html", "r", encoding="utf-8") as f:
+            return render_template_string(f.read())
+    except Exception as e:
+        return f"Seller panel file not found: {e}"
+
+# Agar aapko admin panel alag se kholna ho
+@app.route('/admin')
+def admin_panel():
+    try:
+        with open("admin.html", "r", encoding="utf-8") as f:
+            return render_template_string(f.read())
+    except Exception as e:
+        return f"Admin panel file not found: {e}"
 
 # Reseller Login API
 @app.route('/reseller/login', methods=['POST'])
@@ -77,7 +91,6 @@ def reseller_data():
     whatsapp = reseller_info.get('whatsapp', '')
     telegram = reseller_info.get('telegram', '')
     
-    # Keys fetch karna jo is reseller ne banayi hain
     all_keys = db_get("keys") or {}
     my_keys = []
     for k, info in all_keys.items():
@@ -85,7 +98,6 @@ def reseller_data():
             info['key'] = k
             my_keys.append(info)
             
-    # Transactions fetch karna
     transactions = reseller_info.get('transactions', [])
     
     return jsonify({
@@ -99,7 +111,7 @@ def reseller_data():
         "server_time": int(time.time() * 1000)
     })
 
-# Key Generation API (Supports Custom Price)
+# Key Generation API (Custom Price Support)
 @app.route('/reseller/generate_key', methods=['POST'])
 def generate_key():
     username = request.form.get('username', '').strip().lower()
@@ -118,21 +130,17 @@ def generate_key():
     reseller_info = resellers[username]
     current_balance = reseller_info.get('balance', 0)
     
-    # Trial key ke liye cost 0 hogi
     cost = 0 if plan == 'trial' else custom_cost
     
     if current_balance < cost:
         return jsonify({"success": False, "msg": f"Aapka balance kam hai! Required: ₹{cost}, Available: ₹{current_balance}"})
         
-    # Check if key already exists
     all_keys = db_get("keys") or {}
     if key in all_keys:
         return jsonify({"success": False, "msg": "Yeh key pehle se bani hui hai!"})
         
-    # Deduct balance
     new_balance = current_balance - cost
     
-    # Add transaction
     transactions = reseller_info.get('transactions', [])
     tx_entry = {
         "date": time.strftime('%d %b %Y, %I:%M %p'),
@@ -142,7 +150,6 @@ def generate_key():
     }
     transactions.insert(0, tx_entry)
     
-    # Save key to DB
     key_data = {
         "reseller": username,
         "expiry_timestamp": expiry_timestamp,
@@ -152,7 +159,6 @@ def generate_key():
     }
     db_put(f"keys/{key}", key_data)
     
-    # Update reseller balance and transactions
     db_patch(f"resellers/{username}", {
         "balance": new_balance,
         "transactions": transactions
@@ -160,7 +166,7 @@ def generate_key():
     
     return jsonify({"success": True, "cost": cost, "new_balance": new_balance, "msg": "Key Generated Successfully!"})
 
-# Edit Key API (Status & HWID Reset)
+# Edit Key API
 @app.route('/reseller/edit_key', methods=['POST'])
 def edit_key():
     username = request.form.get('username', '').strip().lower()
@@ -198,7 +204,6 @@ def delete_key():
     if all_keys[key].get('reseller') != username:
         return jsonify({"success": False, "msg": "Permission denied"})
         
-    # Delete key from Firebase
     urllib.request.urlopen(urllib.request.Request(f"{FIREBASE_URL}/keys/{key}.json", method='DELETE'))
     return jsonify({"success": True, "msg": "Key Deleted Successfully!"})
 
