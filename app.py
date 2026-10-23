@@ -71,7 +71,18 @@ def reseller_login():
     
     resellers = db_get("resellers") or {}
     if username in resellers and isinstance(resellers[username], dict):
-        if resellers[username].get('password') == password:
+        r_info = resellers[username]
+        
+        if r_info.get('password') == password:
+            # Blocked status check
+            if r_info.get('status') == 'blocked':
+                return jsonify({"success": False, "msg": "Aapka account Admin dwara Block kar diya gaya hai!"})
+                
+            # Expiry check
+            expiry_timestamp = r_info.get('expiry_timestamp', 0)
+            if expiry_timestamp > 0 and int(time.time() * 1000) > expiry_timestamp:
+                return jsonify({"success": False, "msg": "Aapke account ki validity khatam ho chuki hai!"})
+                
             return jsonify({"success": True, "msg": "Login Successful"})
             
     return jsonify({"success": False, "msg": "Invalid Username or Password!"})
@@ -251,6 +262,7 @@ def admin_add_reseller():
         "password": password,
         "balance": balance,
         "expiry_timestamp": expiry_timestamp,
+        "status": "active",
         "whatsapp": "",
         "telegram": "",
         "transactions": [{
