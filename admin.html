@@ -3,356 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master Control Portal</title>
+    <title>Master Admin Panel</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #090B14;
-            --card: #13172E;
-            --card-inner: #0D1022;
-            --input: #0A0C1A;
-            --primary: #6366F1;
+            --bg: #0E1022;
+            --card: #15182E;
+            --input: #121528;
+            --primary: #4F6BFF;
             --success: #10B981;
             --danger: #EF4444;
-            --warning: #F59E0B;
             --text-main: #FFFFFF;
             --text-muted: #8E96B5;
-            --border: #222849;
+            --border: #222744;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg); color: var(--text-main); padding: 22px 14px; min-height: 100vh; }
-        .container { max-width: 850px; margin: 0 auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .header h1 { font-size: 20px; font-weight: 800; color: #60A5FA; }
-        .btn-refresh { background-color: #252B4D; color: #38BDF8; border: none; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; }
-        .card { background-color: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 20px; margin-bottom: 20px; }
-        .card-title { font-size: 13px; font-weight: 700; color: var(--primary); text-transform: uppercase; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
-        
-        /* Stats Grid (Clickable Filters) */
-        .stats-grid-2x2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-        .stat-box { background-color: var(--card-inner); border: 1px solid var(--border); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; transition: 0.2s; }
-        .stat-box:hover, .stat-box.active-filter { border-color: var(--primary); background-color: #1a1f3c; }
-        .stat-box-title { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
-        .stat-box-val { font-size: 20px; font-weight: 800; color: #FFFFFF; margin-top: 6px; }
-
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 14px; }
-        .input-group label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 5px; font-weight: 600; }
-        .input-group input, .input-group select { width: 100%; background-color: var(--input); border: 1px solid var(--border); color: #fff; padding: 11px 13px; border-radius: 12px; font-size: 13px; outline: none; color-scheme: dark; }
-        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; }
-        .btn-act { flex: 1; min-width: 160px; padding: 12px; border: none; border-radius: 12px; font-size: 13px; font-weight: 700; cursor: pointer; text-align: center; }
-        .btn-danger { background-color: var(--danger); color: #fff; }
-        .btn-success { background-color: var(--success); color: #fff; }
-        .btn-info { background-color: #38BDF8; color: #090B14; }
-        .btn-secondary { background-color: #252B4D; color: #F8FAFC; }
-        
-        .admin-item { background-color: var(--card-inner); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-        .admin-name { font-size: 15px; font-weight: 700; color: #60A5FA; }
-        .admin-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
-        .badge { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
-        .badge-active { background: rgba(16,185,129,0.15); color: #10B981; }
-        .badge-expired { background: rgba(239,68,68,0.15); color: #EF4444; }
-        .badge-blocked { background: rgba(245,158,11,0.15); color: #F59E0B; }
-        
-        .btn-small { border: none; padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; margin-left: 4px; }
-        
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); justify-content: center; align-items: center; padding: 16px; z-index: 200; }
-        .modal-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 22px; width: 100%; max-width: 360px; }
-        .modal-card h3 { font-size: 15px; margin-bottom: 14px; color: #60A5FA; }
-        .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+        body { background-color: var(--bg); color: var(--text-main); padding: 16px; min-height: 100vh; }
+        .container { max-width: 700px; margin: 0 auto; }
+        .card { background-color: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin-bottom: 16px; }
+        .input-group { margin-bottom: 12px; }
+        .input-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; }
+        .input-group input { width: 100%; background-color: var(--input); border: 1px solid var(--border); color: #fff; padding: 12px; border-radius: 10px; font-size: 13px; outline: none; color-scheme: dark; }
+        .btn-submit { width: 100%; background-color: var(--primary); color: #fff; border: none; padding: 13px; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+        th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { color: var(--text-muted); }
+        .btn-del { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: 700; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="header">
-        <h1>👑 MASTER CONTROL (OWNER)</h1>
-        <button class="btn-refresh" onclick="loadAll()">REFRESH</button>
-    </div>
-
-    <!-- STATS COUNTER BOXES -->
-    <div class="stats-grid-2x2">
-        <div class="stat-box active-filter" id="filterAll" onclick="setFilter('all')">
-            <span class="stat-box-title">Total Resellers</span>
-            <span class="stat-box-val" id="statTotal" style="color:#60A5FA;">0</span>
-        </div>
-        <div class="stat-box" id="filterActive" onclick="setFilter('active')">
-            <span class="stat-box-title">Active</span>
-            <span class="stat-box-val" id="statActive" style="color:#10B981;">0</span>
-        </div>
-        <div class="stat-box" id="filterBlocked" onclick="setFilter('blocked')">
-            <span class="stat-box-title">Blocked</span>
-            <span class="stat-box-val" id="statBlocked" style="color:#F59E0B;">0</span>
-        </div>
-        <div class="stat-box" id="filterExpired" onclick="setFilter('expired')">
-            <span class="stat-box-title">Expired</span>
-            <span class="stat-box-val" id="statExpired" style="color:#EF4444;">0</span>
-        </div>
-    </div>
-
-    <!-- 1. APP REMOTE CONTROL -->
-    <div class="card">
-        <div class="card-title">
-            <span>🛡️ APP REMOTE KILL-SWITCH & LIVE ALERT</span>
-            <span id="appStatusBadge" style="color: #10B981;">CHECKING...</span>
-        </div>
-        <div class="btn-group" style="margin-bottom: 16px;">
-            <button type="button" class="btn-act btn-danger" onclick="setAppStatus('disabled')">🛑 CRASH / DEACTIVATE APP</button>
-            <button type="button" class="btn-act btn-success" onclick="setAppStatus('active')">✅ ACTIVATE APP</button>
-        </div>
-        <div style="border-top: 1px solid var(--border); padding-top: 14px;">
-            <div class="form-grid">
-                <div class="input-group">
-                    <label>Alert Popup Title</label>
-                    <input type="text" id="alert_title" placeholder="Notice / Maintenance">
-                </div>
-                <div class="input-group">
-                    <label>Alert Message</label>
-                    <input type="text" id="alert_msg" placeholder="App maintenance in progress.">
-                </div>
+    <!-- ADMIN LOGIN -->
+    <div id="adminLoginView" class="card" style="max-width: 380px; margin: 80px auto;">
+        <h2 style="color: var(--primary); text-align: center; margin-bottom: 20px;">MASTER ADMIN LOGIN</h2>
+        <form onsubmit="adminLogin(event)">
+            <div class="input-group">
+                <label>Admin Username</label>
+                <input type="text" id="admin_user" required>
             </div>
-            <div class="btn-group">
-                <button type="button" class="btn-act btn-info" onclick="sendAppAlert(true)">📢 BROADCAST ALERT</button>
-                <button type="button" class="btn-act btn-secondary" onclick="sendAppAlert(false)">❌ CLEAR ALERT</button>
+            <div class="input-group">
+                <label>Admin Password</label>
+                <input type="password" id="admin_pass" required>
             </div>
-        </div>
-    </div>
-
-    <!-- 2. CREATE RESELLER ACCOUNT -->
-    <div class="card">
-        <div class="card-title">👤 CREATE RESELLER ACCOUNT</div>
-        <form onsubmit="createReseller(event)">
-            <div class="form-grid">
-                <div class="input-group">
-                    <label>Reseller User ID</label>
-                    <input type="text" id="new_res_user" placeholder="e.g. seller1" required>
-                </div>
-                <div class="input-group">
-                    <label>Password</label>
-                    <input type="text" id="new_res_pass" placeholder="Enter password" required>
-                </div>
-                <div class="input-group">
-                    <label>Initial Balance (₹)</label>
-                    <input type="number" id="new_res_bal" value="500" required>
-                </div>
-                <div class="input-group">
-                    <label>Validity Days</label>
-                    <input type="number" id="new_res_days" value="30" required>
-                </div>
-            </div>
-            <button type="submit" class="btn-act btn-success" style="width: 100%;">CREATE RESELLER ID</button>
+            <button type="submit" class="btn-submit">LOGIN</button>
         </form>
     </div>
 
-    <!-- 3. RESELLERS LIST -->
-    <div class="card">
-        <div class="card-title">
-            <span id="adminsListTitle">📋 REGISTERED RESELLERS (ALL)</span>
+    <!-- ADMIN DASHBOARD -->
+    <div id="adminDashView" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2>🛡️ Admin Control Panel</h2>
+            <button class="btn-del" onclick="adminLogout()">Logout</button>
         </div>
-        <div id="adminsList"><div style="text-align: center; color: var(--text-muted); padding: 15px;">Loading resellers...</div></div>
+
+        <div class="card">
+            <h3>➕ Add New Reseller</h3>
+            <form onsubmit="addReseller(event)" style="margin-top: 10px;">
+                <div class="input-group"><label>Reseller Username</label><input type="text" id="new_res_user" required></div>
+                <div class="input-group"><label>Password</label><input type="text" id="new_res_pass" required></div>
+                <div class="input-group"><label>Initial Balance (₹)</label><input type="number" id="new_res_bal" value="1000" required></div>
+                <button type="submit" class="btn-submit">CREATE RESELLER</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h3>👥 Manage Resellers</h3>
+            <table>
+                <thead><tr><th>Username</th><th>Balance</th><th>Action</th></tr></thead>
+                <tbody id="resellersTableBody"><tr><td colspan="3" style="text-align:center;">Loading...</td></tr></tbody>
+            </table>
+        </div>
     </div>
 </div>
 
 <script>
     const API_BASE = window.location.origin;
-    let resellersGlobalData = [];
-    let currentFilter = 'all';
+    let isAdminLoggedIn = localStorage.getItem('admin_logged') === 'true';
 
-    function loadAll() {
-        loadAppControl();
-        loadResellers();
-    }
+    if (isAdminLoggedIn) showAdminDash();
 
-    async function loadAppControl() {
-        try {
-            const res = await fetch(`${API_BASE}/admin/get_app_control`);
-            const data = await res.json();
-            const badge = document.getElementById('appStatusBadge');
-            if (data.status === 'disabled') {
-                badge.innerText = 'STATUS: DISABLED (CRASHED)';
-                badge.style.color = '#EF4444';
-            } else {
-                badge.innerText = 'STATUS: ACTIVE (NORMAL)';
-                badge.style.color = '#10B981';
-            }
-            if (data.show_alert) {
-                document.getElementById('alert_title').value = data.alert_title || '';
-                document.getElementById('alert_msg').value = data.alert_msg || '';
-            }
-        } catch (e) {}
-    }
-
-    async function setAppStatus(status) {
-        if (!confirm(status === 'disabled' ? "Sabhi users ke phone me APP CRASH/BAND karein?" : "App ko wapas ACTIVATE karein?")) return;
-        const body = new URLSearchParams({
-            status: status,
-            show_alert: status === 'disabled' ? 'true' : 'false',
-            alert_title: status === 'disabled' ? "APP STOPPED" : "",
-            alert_msg: status === 'disabled' ? "App is temporarily disabled by Master Admin." : ""
-        });
-        try {
-            const res = await fetch(`${API_BASE}/admin/set_app_control`, { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: body });
-            const data = await res.json();
-            alert(data.msg || "Updated");
-            loadAppControl();
-        } catch (e) { alert("Error!"); }
-    }
-
-    async function sendAppAlert(showAlert) {
-        const title = document.getElementById('alert_title').value.trim();
-        const msg = document.getElementById('alert_msg').value.trim();
-        if (showAlert && (!title || !msg)) return alert("Title aur Message dono bharein!");
-        const body = new URLSearchParams({ status: 'active', alert_title: title, alert_msg: msg, show_alert: showAlert ? 'true' : 'false' });
-        try {
-            const res = await fetch(`${API_BASE}/admin/set_app_control`, { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: body });
-            const data = await res.json();
-            alert(showAlert ? "Alert Broadcasted!" : "Alert Cleared!");
-            loadAppControl();
-        } catch (e) { alert("Error!"); }
-    }
-
-    function setFilter(filterType) {
-        currentFilter = filterType;
-        ['All', 'Active', 'Blocked', 'Expired'].forEach(f => {
-            const el = document.getElementById('filter' + f);
-            if (el) el.classList.remove('active-filter');
-        });
-        const selectedEl = document.getElementById('filter' + filterType.charAt(0).toUpperCase() + filterType.slice(1));
-        if (selectedEl) selectedEl.classList.add('active-filter');
-        renderResellersList();
-    }
-
-    async function loadResellers() {
-        try {
-            const res = await fetch(`${API_BASE}/admin/get_resellers`);
-            resellersGlobalData = await res.json();
-            processAndRenderResellers();
-        } catch (e) {
-            document.getElementById('adminsList').innerHTML = '<div style="color:red; text-align:center;">Load fail</div>';
-        }
-    }
-
-    function processAndRenderResellers() {
-        const now = Date.now();
-        let total = resellersGlobalData.length;
-        let active = 0, blocked = 0, expired = 0;
-
-        resellersGlobalData.forEach(r => {
-            const exp = r.expiry_timestamp || 0;
-            const remDays = exp > 0 ? Math.ceil((exp - now) / (1000 * 60 * 60 * 24)) : 0;
-            const isExp = remDays <= 0 && exp > 0;
-            let status = r.status || 'active';
-            if (isExp) status = 'expired';
-
-            if (status === 'active') active++;
-            else if (status === 'blocked' || status === 'frozen') blocked++;
-            else if (status === 'expired') expired++;
-        });
-
-        document.getElementById('statTotal').innerText = total;
-        document.getElementById('statActive').innerText = active;
-        document.getElementById('statBlocked').innerText = blocked;
-        document.getElementById('statExpired').innerText = expired;
-
-        renderResellersList();
-    }
-
-    function renderResellersList() {
-        const container = document.getElementById('adminsList');
-        const now = Date.now();
-
-        let filtered = resellersGlobalData.filter(r => {
-            const exp = r.expiry_timestamp || 0;
-            const remDays = exp > 0 ? Math.ceil((exp - now) / (1000 * 60 * 60 * 24)) : 0;
-            const isExp = remDays <= 0 && exp > 0;
-            let status = r.status || 'active';
-            if (isExp) status = 'expired';
-
-            if (currentFilter === 'all') return true;
-            if (currentFilter === 'active') return status === 'active';
-            if (currentFilter === 'blocked') return status === 'blocked' || status === 'frozen';
-            if (currentFilter === 'expired') return status === 'expired';
-            return true;
-        });
-
-        document.getElementById('adminsListTitle').innerText = `📋 REGISTERED RESELLERS (${currentFilter.toUpperCase()})`;
-
-        if (filtered.length === 0) {
-            container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 15px;">Is filter me koi reseller nahi hai.</div>';
-            return;
-        }
-
-        let html = '';
-        filtered.forEach(r => {
-            const exp = r.expiry_timestamp || 0;
-            const remDays = exp > 0 ? Math.ceil((exp - now) / (1000 * 60 * 60 * 24)) : 0;
-            const isExp = remDays <= 0 && exp > 0;
-            let status = r.status || 'active';
-            if (isExp) status = 'expired';
-
-            let badgeClass = 'badge-active';
-            let badgeText = remDays + ' DIN BAAKI';
-            if (status === 'blocked' || status === 'frozen') { badgeClass = 'badge-blocked'; badgeText = 'BLOCKED'; }
-            else if (status === 'expired' || isExp) { badgeClass = 'badge-expired'; badgeText = 'EXPIRED'; }
-            else if (exp === 0) { badgeText = 'LIFETIME'; }
-
-            html += `
-                <div class="admin-item">
-                    <div>
-                        <div class="admin-name">👤 ${String(r.username).toUpperCase()} <span class="badge ${badgeClass}">${badgeText}</span></div>
-                        <div class="admin-sub">Password: <b>${r.password}</b> | Wallet: <b>₹${(r.balance||0).toFixed(2)}</b></div>
-                    </div>
-                    <div>
-                        <button class="btn-small" style="background:#132A22; color:#10B981;" onclick="rechargeReseller('${r.username}')">+ RECHARGE</button>
-                        <button class="btn-small" style="background:#2D151B; color:#EF4444;" onclick="deleteReseller('${r.username}')">DEL</button>
-                    </div>
-                </div>
-            `;
-        });
-        container.innerHTML = html;
-    }
-
-    async function createReseller(e) {
+    async function adminLogin(e) {
         e.preventDefault();
-        const body = new URLSearchParams({
-            username: document.getElementById('new_res_user').value.trim().toLowerCase(),
-            password: document.getElementById('new_res_pass').value.trim(),
-            balance: document.getElementById('new_res_bal').value,
-            days: document.getElementById('new_res_days').value
-        });
-        try {
-            const res = await fetch(`${API_BASE}/admin/create_reseller`, { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: body });
-            const data = await res.json();
-            alert(data.msg || "Created!");
-            if (data.success) {
-                document.getElementById('new_res_user').value = '';
-                document.getElementById('new_res_pass').value = '';
-                loadResellers();
-            }
-        } catch (e) { alert("Error creating reseller"); }
+        const u = document.getElementById('admin_user').value.trim();
+        const p = document.getElementById('admin_pass').value.trim();
+        const body = new URLSearchParams({ username: u, password: p });
+        const res = await fetch(`${API_BASE}/admin/login`, { method: 'POST', body });
+        const data = await res.json();
+        if (data.success) {
+            localStorage.setItem('admin_logged', 'true');
+            showAdminDash();
+        } else { alert(data.msg); }
     }
 
-    async function rechargeReseller(user) {
-        const amt = prompt(`Reseller [${user.toUpperCase()}] ke wallet me kitna rupya add karna hai?`, "500");
-        if (!amt || parseFloat(amt) <= 0) return;
-        const body = new URLSearchParams({ username: user, amount: amt });
-        try {
-            const res = await fetch(`${API_BASE}/admin/recharge_reseller`, { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: body });
-            const data = await res.json();
-            if (data.success) { alert("Recharged!"); loadResellers(); }
-        } catch (e) { alert("Error!"); }
+    function adminLogout() {
+        localStorage.removeItem('admin_logged');
+        location.reload();
     }
 
-    async function deleteReseller(user) {
-        if (!confirm(`Reseller [${user.toUpperCase()}] ko permanently delete karein?`)) return;
-        const body = new URLSearchParams({ username: user });
-        try {
-            const res = await fetch(`${API_BASE}/admin/delete_reseller`, { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: body });
-            const data = await res.json();
-            if (data.success) { alert("Deleted!"); loadResellers(); }
-        } catch (e) { alert("Error!"); }
+    function showAdminDash() {
+        document.getElementById('adminLoginView').style.display = 'none';
+        document.getElementById('adminDashView').style.display = 'block';
+        loadAdminData();
     }
 
-    window.onload = loadAll;
+    async function loadAdminData() {
+        const res = await fetch(`${API_BASE}/admin/data`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        let tbody = document.getElementById('resellersTableBody');
+        let resellers = data.resellers || {};
+        let html = '';
+        for (let uname in resellers) {
+            let r = resellers[uname];
+            html += `<tr>
+                <td><b>${uname}</b></td>
+                <td>₹${r.balance || 0}</td>
+                <td><button class="btn-del" onclick="deleteReseller('${uname}')">Delete</button></td>
+            </tr>`;
+        }
+        tbody.innerHTML = html || '<tr><td colspan="3" style="text-align:center;">No resellers found</td></tr>';
+    }
+
+    async function addReseller(e) {
+        e.preventDefault();
+        const u = document.getElementById('new_res_user').value.trim();
+        const p = document.getElementById('new_res_pass').value.trim();
+        const b = document.getElementById('new_res_bal').value;
+        const body = new URLSearchParams({ username: u, password: p, balance: b });
+        const res = await fetch(`${API_BASE}/admin/add_reseller`, { method: 'POST', body });
+        const data = await res.json();
+        alert(data.msg);
+        loadAdminData();
+    }
+
+    async function deleteReseller(username) {
+        if (!confirm(`Delete reseller ${username}?`)) return;
+        const body = new URLSearchParams({ username });
+        await fetch(`${API_BASE}/admin/delete_reseller`, { method: 'POST', body });
+        loadAdminData();
+    }
 </script>
 
 </body>
