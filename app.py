@@ -6,7 +6,7 @@ import urllib.request
 
 app = Flask(__name__)
 
-# Purana amanmod wala Firebase URL
+# Aapka purana amanmod wala Firebase URL
 FIREBASE_URL = "https://amanmod-91196-default-rtdb.firebaseio.com"
 
 def db_get(path):
@@ -40,6 +40,8 @@ def db_patch(path, data):
         print(f"DB Patch Error: {e}")
         return None
 
+# --- ROUTES ---
+
 @app.route('/')
 def home():
     try:
@@ -56,6 +58,8 @@ def admin_panel():
     except Exception as e:
         return f"Admin panel file not found: {e}"
 
+# --- RESELLER APIs ---
+
 @app.route('/reseller/login', methods=['POST'])
 def reseller_login():
     username = request.form.get('username', '').strip().lower()
@@ -65,7 +69,7 @@ def reseller_login():
         return jsonify({"success": False, "msg": "Username aur Password zaroori hai!"})
     
     resellers = db_get("resellers") or {}
-    if username in resellers:
+    if username in resellers and isinstance(resellers[username], dict):
         if resellers[username].get('password') == password:
             return jsonify({"success": True, "msg": "Login Successful"})
             
@@ -89,10 +93,11 @@ def reseller_data():
     
     all_keys = db_get("keys") or {}
     my_keys = []
-    for k, info in all_keys.items():
-        if isinstance(info, dict) and info.get('reseller') == username:
-            info['key'] = k
-            my_keys.append(info)
+    if isinstance(all_keys, dict):
+        for k, info in all_keys.items():
+            if isinstance(info, dict) and info.get('reseller') == username:
+                info['key'] = k
+                my_keys.append(info)
             
     transactions = reseller_info.get('transactions', [])
     if not isinstance(transactions, list):
@@ -133,7 +138,7 @@ def generate_key():
         return jsonify({"success": False, "msg": f"Aapka balance kam hai! Required: ₹{cost}, Available: ₹{current_balance}"})
         
     all_keys = db_get("keys") or {}
-    if key in all_keys:
+    if isinstance(all_keys, dict) and key in all_keys:
         return jsonify({"success": False, "msg": "Yeh key pehle se bani hui hai!"})
         
     new_balance = current_balance - cost
@@ -174,7 +179,7 @@ def edit_key():
     reset_hwid = request.form.get('reset_hwid') == 'true'
     
     all_keys = db_get("keys") or {}
-    if key not in all_keys:
+    if not isinstance(all_keys, dict) or key not in all_keys:
         return jsonify({"success": False, "msg": "Key not found"})
         
     key_info = all_keys[key]
@@ -196,7 +201,7 @@ def delete_key():
     key = request.form.get('key', '').strip().upper()
     
     all_keys = db_get("keys") or {}
-    if key not in all_keys:
+    if not isinstance(all_keys, dict) or key not in all_keys:
         return jsonify({"success": False, "msg": "Key not found"})
         
     if not isinstance(all_keys[key], dict) or all_keys[key].get('reseller') != username:
@@ -216,6 +221,99 @@ def update_contact():
         "telegram": telegram
     })
     return jsonify({"success": True, "msg": "Contact Links Updated Successfully!"})
+
+
+# --- ADMIN APIs ---
+
+@app.route('/admin/login', methods=['POST'])
+def admin_login():
+    username = request.form.get('username', '').strip()
+    password = request.form.get('password', '').strip()
+    
+    # Master Admin credentials (Aap ise change bhi kar sakte hain)
+    admin_data = db_get("admin") or {"username": "admin", "password": "adminpassword123"}
+    
+    if username == admin_data.get("username") and password == admin_data.get("password"):
+        return jsonify({"success": True, "msg": "Admin Login Successful"})
+    return jsonify({"success": False, "msg": "Invalid Admin Credentials!"})
+
+@app.route('/admin/data', methods=['GET'])
+def admin_data():
+    resellers = db_get("resellers") or {}
+    keys = db_get("keys") or {}
+    return jsonify({
+        "success": True,
+        "resellers": resellers,
+        "keys": keys,
+        "server_time": int(time.time() * 1000)
+    })
+
+@app.route('/admin/add_reseller', methods=['POST'])
+def admin_add_reseller():
+    username = request.form.get('username', '').strip().lower()
+    password = request.form.get('password', '').strip()
+    balance = float(request.form.get('balance', 0))
+    
+    if not username or not password:
+        return jsonify({"success": False, "msg": "Username aur Password zaroori hai!"})
+        
+    reseller_data = {
+        "password": password,
+        "balance": balance,
+        "expiry_timestamp": 0,
+        "whatsapp": "",
+        "telegram": "",
+        "transactions": [{
+            "date": time.strftime('%d %b %Y, %I:%M %p'),
+            "type": "credit",
+            "amount": balance,
+            "details": "Admin created account with initial balance"
+        }]
+    }
+    db_put(f"resellers/{username}", reseller_data)
+    return jsonify({"success": True, "msg": "Reseller Added Successfully!"})
+
+@app.route('/admin/topup', methods=['POST'])
+def admin_topup():
+    username = request.form.get('username', '').strip().lower()
+    amount = float(request.form.get('amount', 0))
+    
+    resellers = db_get("resellers") or {}
+    if username not in resellers:
+        return jsonify({"success": False, "msg": "Reseller not found!"})
+        
+    current_balance = float(resellers[username].get('balance', 0))
+    new_balance = current_balance + amount
+    
+    transactions = resellers[username].get('transactions', [])
+    if not isinstance(transactions, list):
+        transactions = []
+        
+    transactions.insert(0, {
+        "date": time.strftime('%d %b %Y, %I:%M %p'),
+        "type": "credit",
+        "amount": amount,
+        "details": "Admin added balance (Topup)"
+    })
+    
+    db_patch(f"resellers/{username}", {
+        "balance": new_balance,
+        "transactions": transactions
+    })
+    return jsonify({"success": True, "msg": "Balance Added Successfully!"})
+
+@app.route('/admin/delete_reseller', methods=['POST'])
+def admin_delete_reseller():
+    username = request.form.get('username', '').strip().lower()
+    urllib.request.urlopen(urllib.request.Request(f"{FIREBASE_URL}/resellers/{username}.json", method='DELETE'))
+    return jsonify({"success": True, "msg": "Reseller Deleted Successfully!"})
+
+@app.route('/admin/delete_key', methods=['POST'])
+def admin_delete_key():
+    key = request.form.get('key', '').strip().upper()
+    urllib.request.urlopen(urllib.request.Request(f"{FIREBASE_URL}/keys/{key}.json", method='DELETE'))
+    return jsonify({"success": True, "msg": "Key Deleted Successfully by Admin!"})
+
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 10000))
