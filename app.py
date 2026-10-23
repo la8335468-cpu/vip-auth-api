@@ -6,7 +6,7 @@ import urllib.request
 
 app = Flask(__name__)
 
-# Aapka purana amanmod wala Firebase URL
+# Aapka amanmod wala Firebase URL
 FIREBASE_URL = "https://amanmod-91196-default-rtdb.firebaseio.com"
 
 def db_get(path):
@@ -257,11 +257,44 @@ def admin_add_reseller():
             "date": time.strftime('%d %b %Y, %I:%M %p'),
             "type": "credit",
             "amount": balance,
-            "details": "Admin created account with custom validity"
+            "details": "Admin created account with initial balance"
         }]
     }
     db_put(f"resellers/{username}", reseller_data)
     return jsonify({"success": True, "msg": "Reseller Account Created Successfully!"})
+
+@app.route('/admin/edit_reseller', methods=['POST'])
+def admin_edit_reseller():
+    username = request.form.get('username', '').strip().lower()
+    status = request.form.get('status', 'active')
+    recharge_amount = float(request.form.get('recharge_amount', 0))
+    
+    resellers = db_get("resellers") or {}
+    if username not in resellers:
+        return jsonify({"success": False, "msg": "Reseller not found!"})
+        
+    r_info = resellers[username]
+    current_balance = float(r_info.get('balance', 0))
+    new_balance = current_balance + recharge_amount
+    
+    transactions = r_info.get('transactions', [])
+    if not isinstance(transactions, list):
+        transactions = []
+        
+    if recharge_amount > 0:
+        transactions.insert(0, {
+            "date": time.strftime('%d %b %Y, %I:%M %p'),
+            "type": "credit",
+            "amount": recharge_amount,
+            "details": f"Admin recharged ₹{recharge_amount}"
+        })
+        
+    db_patch(f"resellers/{username}", {
+        "balance": new_balance,
+        "status": status,
+        "transactions": transactions
+    })
+    return jsonify({"success": True, "msg": "Reseller Updated & Recharged Successfully!"})
 
 @app.route('/admin/delete_reseller', methods=['POST'])
 def admin_delete_reseller():
