@@ -34,27 +34,11 @@
 <body>
 
 <div class="container">
-    <!-- ADMIN LOGIN -->
-    <div id="adminLoginView" class="card" style="max-width: 380px; margin: 80px auto;">
-        <h2 style="color: var(--primary); text-align: center; margin-bottom: 20px;">MASTER ADMIN LOGIN</h2>
-        <form onsubmit="adminLogin(event)">
-            <div class="input-group">
-                <label>Admin Username</label>
-                <input type="text" id="admin_user" required>
-            </div>
-            <div class="input-group">
-                <label>Admin Password</label>
-                <input type="password" id="admin_pass" required>
-            </div>
-            <button type="submit" class="btn-submit">LOGIN</button>
-        </form>
-    </div>
-
-    <!-- ADMIN DASHBOARD -->
-    <div id="adminDashView" style="display: none;">
+    <!-- DIRECT ADMIN DASHBOARD (Login Removed) -->
+    <div id="adminDashView">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2>🛡️ Admin Control Panel</h2>
-            <button class="btn-del" onclick="adminLogout()">Logout</button>
+            <h2>🛡️ Master Admin Control Panel</h2>
+            <button class="btn-submit" style="width: auto; padding: 6px 14px; font-size: 12px;" onclick="loadAdminData()">🔄 Refresh</button>
         </div>
 
         <div class="card">
@@ -79,51 +63,33 @@
 
 <script>
     const API_BASE = window.location.origin;
-    let isAdminLoggedIn = localStorage.getItem('admin_logged') === 'true';
 
-    if (isAdminLoggedIn) showAdminDash();
-
-    async function adminLogin(e) {
-        e.preventDefault();
-        const u = document.getElementById('admin_user').value.trim();
-        const p = document.getElementById('admin_pass').value.trim();
-        const body = new URLSearchParams({ username: u, password: p });
-        const res = await fetch(`${API_BASE}/admin/login`, { method: 'POST', body });
-        const data = await res.json();
-        if (data.success) {
-            localStorage.setItem('admin_logged', 'true');
-            showAdminDash();
-        } else { alert(data.msg); }
-    }
-
-    function adminLogout() {
-        localStorage.removeItem('admin_logged');
-        location.reload();
-    }
-
-    function showAdminDash() {
-        document.getElementById('adminLoginView').style.display = 'none';
-        document.getElementById('adminDashView').style.display = 'block';
+    // Page khulte hi direct data load hoga bina kisi login ke
+    window.onload = function() {
         loadAdminData();
-    }
+    };
 
     async function loadAdminData() {
-        const res = await fetch(`${API_BASE}/admin/data`);
-        const data = await res.json();
-        if (!data.success) return;
+        try {
+            const res = await fetch(`${API_BASE}/admin/data`);
+            const data = await res.json();
+            if (!data.success) return;
 
-        let tbody = document.getElementById('resellersTableBody');
-        let resellers = data.resellers || {};
-        let html = '';
-        for (let uname in resellers) {
-            let r = resellers[uname];
-            html += `<tr>
-                <td><b>${uname}</b></td>
-                <td>₹${r.balance || 0}</td>
-                <td><button class="btn-del" onclick="deleteReseller('${uname}')">Delete</button></td>
-            </tr>`;
+            let tbody = document.getElementById('resellersTableBody');
+            let resellers = data.resellers || {};
+            let html = '';
+            for (let uname in resellers) {
+                let r = resellers[uname];
+                html += `<tr>
+                    <td><b>${uname}</b></td>
+                    <td>₹${r.balance || 0}</td>
+                    <td><button class="btn-del" onclick="deleteReseller('${uname}')">Delete</button></td>
+                </tr>`;
+            }
+            tbody.innerHTML = html || '<tr><td colspan="3" style="text-align:center;">No resellers found</td></tr>';
+        } catch (err) {
+            console.log("Error:", err);
         }
-        tbody.innerHTML = html || '<tr><td colspan="3" style="text-align:center;">No resellers found</td></tr>';
     }
 
     async function addReseller(e) {
