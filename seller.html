@@ -98,6 +98,7 @@
             border-radius: 16px;
             padding: 20px 18px;
             margin-bottom: 16px;
+            overflow: hidden;
         }
 
         .balance-label {
@@ -110,10 +111,12 @@
         }
 
         .balance-amount {
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 800;
             color: #FFFFFF;
             margin-bottom: 6px;
+            word-break: break-all;
+            overflow-wrap: break-word;
         }
 
         .balance-subtext {
@@ -395,7 +398,6 @@
                         </select>
                     </div>
 
-                    <!-- CUSTOM PRICE EDITABLE INPUT -->
                     <div class="input-group">
                         <label>Custom Price (₹) - Apni Marzi Se Set Karein</label>
                         <input type="number" id="key_cost" value="100" min="0" required style="background-color: #080B18; color: #34D399; font-weight: 800;">
@@ -625,7 +627,9 @@
                 document.getElementById('dispDateTime').innerText = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) + ", " + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             }
 
-            document.getElementById('statBalance').innerText = `₹${(data.balance || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+            let safeBalance = parseFloat(data.balance || 0);
+            if (isNaN(safeBalance) || safeBalance > 999999999) safeBalance = 0;
+            document.getElementById('statBalance').innerText = `₹${safeBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
 
             const exp = data.expiry_timestamp || 0;
             if (exp > 0) {
@@ -635,13 +639,31 @@
                 document.getElementById('profExpiry').innerText = "Unlimited / Lifetime";
             }
 
-            renderTransactions(data.transactions || []);
-            allKeysData = data.keys || [];
+            renderTransactions(Array.isArray(data.transactions) ? data.transactions : []);
+            
+            let rawKeys = data.keys || [];
+            if (!Array.isArray(rawKeys) && typeof rawKeys === 'object') {
+                allKeysData = Object.keys(rawKeys).map(k => {
+                    let item = rawKeys[k];
+                    if (typeof item === 'object' && item !== null) {
+                        item.key = item.key || k;
+                        return item;
+                    }
+                    return null;
+                }).filter(item => item !== null);
+            } else if (Array.isArray(rawKeys)) {
+                allKeysData = rawKeys;
+            } else {
+                allKeysData = [];
+            }
+
             processAndRenderKeys();
 
             if (data.whatsapp) document.getElementById('contact_whatsapp').value = data.whatsapp;
             if (data.telegram) document.getElementById('contact_telegram').value = data.telegram;
-        } catch (err) {}
+        } catch (err) {
+            console.log("Load dashboard error:", err);
+        }
     }
 
     function renderTransactions(txs) {
