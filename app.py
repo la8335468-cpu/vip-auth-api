@@ -6,7 +6,7 @@ import urllib.request
 
 app = Flask(__name__)
 
-# Aapka purana amanmod wala Firebase URL
+# Purana amanmod wala Firebase URL
 FIREBASE_URL = "https://amanmod-91196-default-rtdb.firebaseio.com"
 
 def db_get(path):
@@ -225,18 +225,6 @@ def update_contact():
 
 # --- ADMIN APIs ---
 
-@app.route('/admin/login', methods=['POST'])
-def admin_login():
-    username = request.form.get('username', '').strip()
-    password = request.form.get('password', '').strip()
-    
-    # Master Admin credentials (Aap ise change bhi kar sakte hain)
-    admin_data = db_get("admin") or {"username": "admin", "password": "adminpassword123"}
-    
-    if username == admin_data.get("username") and password == admin_data.get("password"):
-        return jsonify({"success": True, "msg": "Admin Login Successful"})
-    return jsonify({"success": False, "msg": "Invalid Admin Credentials!"})
-
 @app.route('/admin/data', methods=['GET'])
 def admin_data():
     resellers = db_get("resellers") or {}
@@ -253,6 +241,7 @@ def admin_add_reseller():
     username = request.form.get('username', '').strip().lower()
     password = request.form.get('password', '').strip()
     balance = float(request.form.get('balance', 0))
+    expiry_timestamp = int(request.form.get('expiry_timestamp', 0))
     
     if not username or not password:
         return jsonify({"success": False, "msg": "Username aur Password zaroori hai!"})
@@ -260,7 +249,7 @@ def admin_add_reseller():
     reseller_data = {
         "password": password,
         "balance": balance,
-        "expiry_timestamp": 0,
+        "expiry_timestamp": expiry_timestamp,
         "whatsapp": "",
         "telegram": "",
         "transactions": [{
@@ -271,48 +260,13 @@ def admin_add_reseller():
         }]
     }
     db_put(f"resellers/{username}", reseller_data)
-    return jsonify({"success": True, "msg": "Reseller Added Successfully!"})
-
-@app.route('/admin/topup', methods=['POST'])
-def admin_topup():
-    username = request.form.get('username', '').strip().lower()
-    amount = float(request.form.get('amount', 0))
-    
-    resellers = db_get("resellers") or {}
-    if username not in resellers:
-        return jsonify({"success": False, "msg": "Reseller not found!"})
-        
-    current_balance = float(resellers[username].get('balance', 0))
-    new_balance = current_balance + amount
-    
-    transactions = resellers[username].get('transactions', [])
-    if not isinstance(transactions, list):
-        transactions = []
-        
-    transactions.insert(0, {
-        "date": time.strftime('%d %b %Y, %I:%M %p'),
-        "type": "credit",
-        "amount": amount,
-        "details": "Admin added balance (Topup)"
-    })
-    
-    db_patch(f"resellers/{username}", {
-        "balance": new_balance,
-        "transactions": transactions
-    })
-    return jsonify({"success": True, "msg": "Balance Added Successfully!"})
+    return jsonify({"success": True, "msg": "Reseller Account Created Successfully!"})
 
 @app.route('/admin/delete_reseller', methods=['POST'])
 def admin_delete_reseller():
     username = request.form.get('username', '').strip().lower()
     urllib.request.urlopen(urllib.request.Request(f"{FIREBASE_URL}/resellers/{username}.json", method='DELETE'))
     return jsonify({"success": True, "msg": "Reseller Deleted Successfully!"})
-
-@app.route('/admin/delete_key', methods=['POST'])
-def admin_delete_key():
-    key = request.form.get('key', '').strip().upper()
-    urllib.request.urlopen(urllib.request.Request(f"{FIREBASE_URL}/keys/{key}.json", method='DELETE'))
-    return jsonify({"success": True, "msg": "Key Deleted Successfully by Admin!"})
 
 
 if __name__ == '__main__':
