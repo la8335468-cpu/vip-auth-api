@@ -619,7 +619,11 @@
         try {
             const res = await fetch(`${API_BASE}/reseller/data?username=${encodeURIComponent(currentUser)}`);
             const data = await res.json();
-            if (!data.success) { doLogout(); return; }
+            if (!data.success) {
+                alert(data.msg || "Session expired or account blocked!");
+                doLogout();
+                return;
+            }
 
             if (data.server_time) {
                 currentServerTime = data.server_time;
