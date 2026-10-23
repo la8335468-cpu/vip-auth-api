@@ -13,6 +13,7 @@
             --primary: #4F6BFF;
             --success: #10B981;
             --danger: #EF4444;
+            --warning: #F59E0B;
             --text-main: #FFFFFF;
             --text-muted: #8E96B5;
             --border: #222744;
@@ -33,7 +34,8 @@
         .refresh-btn { background: transparent; border: 1px solid var(--border); color: #60A5FA; padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; }
 
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
-        .stat-box { background-color: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
+        .stat-box { background-color: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px; cursor: pointer; transition: 0.2s; }
+        .stat-box:hover, .stat-box.active-filter { border-color: var(--primary); background-color: #1a1f3c; }
         .stat-title { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
         .stat-val { font-size: 20px; font-weight: 800; color: #fff; margin-top: 4px; }
 
@@ -50,16 +52,28 @@
         .btn-clear { background: transparent; border: 1px solid var(--border); color: var(--danger); padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer; width: 100%; }
 
         table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
-        th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--border); }
+        th, td { padding: 10px 6px; text-align: left; border-bottom: 1px solid var(--border); }
         th { color: var(--text-muted); }
-        .btn-del { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: 700; }
+        
+        .badge-status { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; display: inline-block; }
+        .st-active { background: rgba(16, 185, 129, 0.15); color: #10B981; }
+        .st-blocked { background: rgba(245, 158, 11, 0.15); color: #F59E0B; }
+        .st-expired { background: rgba(239, 68, 68, 0.15); color: #EF4444; }
+
+        .action-btns { display: flex; gap: 4px; }
+        .btn-act { border: none; padding: 5px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; }
+        .btn-edit { background: rgba(56, 189, 248, 0.2); color: #38BDF8; }
+        .btn-del { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); justify-content: center; align-items: center; padding: 16px; z-index: 200; }
+        .modal-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; width: 100%; max-width: 340px; }
     </style>
 </head>
 <body>
 
 <div class="container">
 
-    <!-- MASTER CONTROL HEADER -->
+    <!-- HEADER -->
     <div class="card header-card">
         <h3 style="color: #60A5FA; font-size: 16px;">👑 MASTER CONTROL</h3>
         <button class="refresh-btn" onclick="loadData()">🔄 REFRESH</button>
@@ -71,10 +85,22 @@
 
     <!-- STATS COUNTERS -->
     <div class="stats-grid">
-        <div class="stat-box"><div class="stat-title">Total Resellers</div><div class="stat-val" id="statTotal" style="color: #60A5FA;">0</div></div>
-        <div class="stat-box"><div class="stat-title">Active</div><div class="stat-val" id="statActive" style="color: var(--success);">0</div></div>
-        <div class="stat-box"><div class="stat-title">Blocked</div><div class="stat-val" id="statBlocked" style="color: #F59E0B;">0</div></div>
-        <div class="stat-box"><div class="stat-title">Expired</div><div class="stat-val" id="statExpired" style="color: var(--danger);">0</div></div>
+        <div class="stat-box active-filter" id="filterAll" onclick="setFilter('all')">
+            <div class="stat-title">Total Resellers</div>
+            <div class="stat-val" id="statTotal" style="color: #60A5FA;">0</div>
+        </div>
+        <div class="stat-box" id="filterActive" onclick="setFilter('active')">
+            <div class="stat-title">Active</div>
+            <div class="stat-val" id="statActive" style="color: var(--success);">0</div>
+        </div>
+        <div class="stat-box" id="filterBlocked" onclick="setFilter('blocked')">
+            <div class="stat-title">Blocked</div>
+            <div class="stat-val" id="statBlocked" style="color: #F59E0B;">0</div>
+        </div>
+        <div class="stat-box" id="filterExpired" onclick="setFilter('expired')">
+            <div class="stat-title">Expired</div>
+            <div class="stat-val" id="statExpired" style="color: var(--danger);">0</div>
+        </div>
     </div>
 
     <!-- APP REMOTE KILL-SWITCH -->
@@ -115,13 +141,8 @@
                 </select>
             </div>
 
-            <div class="input-group" id="daysInputBox">
-                <input type="number" id="resDays" value="30" placeholder="Validity Days">
-            </div>
-
-            <div class="input-group" id="dateInputBox" style="display: none;">
-                <input type="date" id="resDate">
-            </div>
+            <div class="input-group" id="daysInputBox"><input type="number" id="resDays" value="30" placeholder="Validity Days"></div>
+            <div class="input-group" id="dateInputBox" style="display: none;"><input type="date" id="resDate"></div>
 
             <button type="submit" class="btn-create">CREATE RESELLER ID</button>
         </form>
@@ -129,17 +150,48 @@
 
     <!-- REGISTERED RESELLERS -->
     <div class="card">
-        <div style="font-size: 12px; font-weight: 700; margin-bottom: 10px; color: var(--text-muted);">📋 REGISTERED RESELLERS (ALL)</div>
+        <div style="font-size: 12px; font-weight: 700; margin-bottom: 10px; color: var(--text-muted);" id="tableTitle">📋 REGISTERED RESELLERS (ALL)</div>
         <table>
-            <thead><tr><th>User</th><th>Bal</th><th>Expiry</th><th>Action</th></tr></thead>
+            <thead><tr><th>User</th><th>Bal</th><th>Status</th><th>Action</th></tr></thead>
             <tbody id="resellersTable"><tr><td colspan="4" style="text-align:center; color: var(--text-muted);">Loading...</td></tr></tbody>
         </table>
     </div>
 
 </div>
 
+<!-- EDIT & RECHARGE MODAL -->
+<div class="modal" id="editModal">
+    <div class="modal-card">
+        <h3 style="color: #60A5FA; margin-bottom: 12px; font-size: 15px;">Edit & Recharge: <span id="editUserTitle"></span></h3>
+        <form onsubmit="submitEditReseller(event)">
+            <div class="input-group">
+                <label>Current Balance: <span id="currentBalText" style="color:#34D399;">₹0</span></label>
+            </div>
+            <div class="input-group">
+                <label>Add Recharge Amount (₹) [Khaali chhor dein agar recharge nahi karna]</label>
+                <input type="number" id="rechargeAmt" value="0" min="0">
+            </div>
+            <div class="input-group">
+                <label>Status</label>
+                <select id="editStatus">
+                    <option value="active">Active</option>
+                    <option value="blocked">Blocked</option>
+                </select>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px;">
+                <button type="button" class="btn-act" onclick="closeEditModal()" style="background:transparent; color:var(--text-muted);">Cancel</button>
+                <button type="submit" class="btn-act btn-edit">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
     const API_BASE = window.location.origin;
+    let cachedResellers = {};
+    let currentFilter = 'all';
+    let serverTime = Date.now();
+    let editingUsername = '';
 
     window.onload = function() {
         loadData();
@@ -147,13 +199,17 @@
 
     function toggleValidityInput() {
         const mode = document.getElementById('validityMode').value;
-        if (mode === 'days') {
-            document.getElementById('daysInputBox').style.display = 'block';
-            document.getElementById('dateInputBox').style.display = 'none';
-        } else {
-            document.getElementById('daysInputBox').style.display = 'none';
-            document.getElementById('dateInputBox').style.display = 'block';
-        }
+        document.getElementById('daysInputBox').style.display = mode === 'days' ? 'block' : 'none';
+        document.getElementById('dateInputBox').style.display = mode === 'date' ? 'block' : 'none';
+    }
+
+    function setFilter(filterType) {
+        currentFilter = filterType;
+        ['all', 'active', 'blocked', 'expired'].forEach(f => {
+            document.getElementById('filter' + f.charAt(0).toUpperCase() + f.slice(1)).classList.remove('active-filter');
+        });
+        document.getElementById('filter' + filterType.charAt(0).toUpperCase() + filterType.slice(1)).classList.add('active-filter');
+        renderResellersList();
     }
 
     async function loadData() {
@@ -164,43 +220,104 @@
 
             let status = data.control?.status || 'active';
             document.getElementById('appStatusText').innerText = `APP STATUS: ${status.toUpperCase()}`;
+            serverTime = data.server_time || Date.now();
+            cachedResellers = data.resellers || {};
 
-            let resellers = data.resellers || {};
-            let total = 0, active = 0, blocked = 0, expired = 0;
-            let tbody = document.getElementById('resellersTable');
-            let html = '';
-            let now = data.server_time || Date.now();
-
-            for (let uname in resellers) {
-                let r = resellers[uname];
-                total++;
-                let exp = r.expiry_timestamp || 0;
-                let isExp = exp > 0 && now > exp;
-
-                if (isExp) expired++;
-                else active++;
-
-                let expDate = exp > 0 ? new Date(exp).toLocaleDateString('en-GB') : 'Lifetime';
-
-                html += `
-                    <tr>
-                        <td><b>${uname}</b></td>
-                        <td>₹${r.balance || 0}</td>
-                        <td>${expDate}</td>
-                        <td><button class="btn-del" onclick="deleteReseller('${uname}')">Del</button></td>
-                    </tr>
-                `;
-            }
-
-            document.getElementById('statTotal').innerText = total;
-            document.getElementById('statActive').innerText = active;
-            document.getElementById('statBlocked').innerText = blocked;
-            document.getElementById('statExpired').innerText = expired;
-
-            tbody.innerHTML = html || '<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">No resellers found</td></tr>';
+            processStatsAndRender();
         } catch (err) {
             console.log("Error loading data:", err);
         }
+    }
+
+    function processStatsAndRender() {
+        let total = 0, active = 0, blocked = 0, expired = 0;
+
+        for (let uname in cachedResellers) {
+            let r = cachedResellers[uname];
+            total++;
+            let exp = r.expiry_timestamp || 0;
+            let isExp = exp > 0 && serverTime > exp;
+            let manualStatus = r.status || 'active';
+
+            if (isExp) expired++;
+            else if (manualStatus === 'blocked') blocked++;
+            else active++;
+        }
+
+        document.getElementById('statTotal').innerText = total;
+        document.getElementById('statActive').innerText = active;
+        document.getElementById('statBlocked').innerText = blocked;
+        document.getElementById('statExpired').innerText = expired;
+
+        renderResellersList();
+    }
+
+    function renderResellersList() {
+        let tbody = document.getElementById('resellersTable');
+        let html = '';
+        document.getElementById('tableTitle').innerText = `📋 REGISTERED RESELLERS (${currentFilter.toUpperCase()})`;
+
+        for (let uname in cachedResellers) {
+            let r = cachedResellers[uname];
+            let exp = r.expiry_timestamp || 0;
+            let isExp = exp > 0 && serverTime > exp;
+            let manualStatus = r.status || 'active';
+            
+            let finalStatus = 'active';
+            if (isExp) finalStatus = 'expired';
+            else if (manualStatus === 'blocked') finalStatus = 'blocked';
+
+            if (currentFilter === 'active' && finalStatus !== 'active') continue;
+            if (currentFilter === 'blocked' && finalStatus !== 'blocked') continue;
+            if (currentFilter === 'expired' && finalStatus !== 'expired') continue;
+
+            let badgeClass = 'st-active';
+            if (finalStatus === 'blocked') badgeClass = 'st-blocked';
+            if (finalStatus === 'expired') badgeClass = 'st-expired';
+
+            html += `
+                <tr>
+                    <td><b>${uname}</b></td>
+                    <td>₹${r.balance || 0}</td>
+                    <td><span class="badge-status ${badgeClass}">${finalStatus.toUpperCase()}</span></td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="btn-act btn-edit" onclick="openEditModal('${uname}')">✏️</button>
+                            <button class="btn-act btn-del" onclick="deleteReseller('${uname}')">🗑️</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+        tbody.innerHTML = html || `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">No resellers found in ${currentFilter}</td></tr>`;
+    }
+
+    function openEditModal(uname) {
+        editingUsername = uname;
+        let r = cachedResellers[uname];
+        document.getElementById('editUserTitle').innerText = uname;
+        document.getElementById('currentBalText').innerText = `₹${r.balance || 0}`;
+        document.getElementById('rechargeAmt').value = 0;
+        document.getElementById('editStatus').value = r.status || 'active';
+        document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function closeEditModal() {
+        document.getElementById('editModal').style.display = 'none';
+        editingUsername = '';
+    }
+
+    async function submitEditReseller(e) {
+        e.preventDefault();
+        let recharge_amount = document.getElementById('rechargeAmt').value;
+        let status = document.getElementById('editStatus').value;
+
+        const body = new URLSearchParams({ username: editingUsername, recharge_amount, status });
+        const res = await fetch(`${API_BASE}/admin/edit_reseller`, { method: 'POST', body });
+        const data = await res.json();
+        alert(data.msg);
+        closeEditModal();
+        loadData();
     }
 
     async function setAppStatus(status) {
@@ -242,9 +359,7 @@
             expiry_timestamp = Date.now() + (days * 24 * 3600 * 1000);
         } else {
             let dateVal = document.getElementById('resDate').value;
-            if (dateVal) {
-                expiry_timestamp = new Date(dateVal).getTime();
-            }
+            if (dateVal) expiry_timestamp = new Date(dateVal).getTime();
         }
 
         const body = new URLSearchParams({ username, password, balance, expiry_timestamp: expiry_timestamp.toString() });
