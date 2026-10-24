@@ -387,20 +387,16 @@
                     <div class="input-group">
                         <label>Expiry Duration / Plan</label>
                         <select id="quick_expiry" onchange="onQuickExpiryChange()">
-                            <option value="never">Never (Lifetime)</option>
-                            <option value="1h">1 Hour</option>
-                            <option value="2h">2 Hours</option>
-                            <option value="12h">12 Hours</option>
-                            <option value="1d" selected>1 Day</option>
                             <option value="7d">7 Days</option>
                             <option value="15d">15 Days</option>
-                            <option value="30d">30 Days</option>
+                            <option value="30d" selected>30 Days</option>
+                            <option value="never">Never (Lifetime)</option>
                         </select>
                     </div>
 
                     <div class="input-group">
-                        <label>Custom Price (₹) - Apni Marzi Se Set Karein</label>
-                        <input type="number" id="key_cost" value="100" min="0" required style="background-color: #080B18; color: #34D399; font-weight: 800;">
+                        <label>Fixed Price (₹) [Locked by Admin]</label>
+                        <input type="number" id="key_cost" readonly style="background-color: #080B18; color: #34D399; font-weight: 800;">
                     </div>
 
                     <button type="submit" class="btn-submit">CREATE LICENSE KEY</button>
@@ -488,11 +484,12 @@
     let currentUser = localStorage.getItem('reseller_user') || '';
     let currentServerTime = 0;
     let calculatedTimestamp = 0;
-    let calculatedPlanName = "1 Day";
+    let calculatedPlanName = "30 Days";
     let editingKey = '';
     
     let allKeysData = [];
     let currentFilter = 'all';
+    let adminPrices = { "7d": 700, "15d": 1500, "30d": 3000, "never": 5000 };
 
     function doLogout() {
         localStorage.removeItem('reseller_user');
@@ -521,7 +518,6 @@
         document.getElementById('dispUser').innerText = `👤 ${currentUser.toUpperCase()}`;
         document.getElementById('profUsername').innerText = `@${currentUser.toUpperCase()}`;
         makeRandomKey();
-        onQuickExpiryChange();
         loadDashboard();
     }
 
@@ -531,7 +527,7 @@
         const pass = document.getElementById('log_pass').value.trim();
         const body = new URLSearchParams({ username: user, password: pass });
         try {
-            const res = await fetch(`${API_BASE}/reseller/login`, { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: body });
+            const res = await fetch(`${API_BASE}/reseller/login`, { method: 'POST', body });
             const data = await res.json();
             if (data.success) {
                 currentUser = user;
@@ -569,42 +565,26 @@
     function onQuickExpiryChange() {
         const val = document.getElementById('quick_expiry').value;
         const now = currentServerTime > 0 ? currentServerTime : Date.now();
-        let defaultCost = 100;
+        let cost = 3000;
 
-        if (val === 'never') {
-            calculatedTimestamp = 0;
-            defaultCost = 3000;
-            calculatedPlanName = "Never (Lifetime)";
-        } else if (val === '1h') {
-            calculatedTimestamp = now + (3600 * 1000);
-            defaultCost = 5;
-            calculatedPlanName = "1 Hour";
-        } else if (val === '2h') {
-            calculatedTimestamp = now + (2 * 3600 * 1000);
-            defaultCost = 10;
-            calculatedPlanName = "2 Hours";
-        } else if (val === '12h') {
-            calculatedTimestamp = now + (12 * 3600 * 1000);
-            defaultCost = 50;
-            calculatedPlanName = "12 Hours";
-        } else if (val === '1d') {
-            calculatedTimestamp = now + (24 * 3600 * 1000);
-            defaultCost = 100;
-            calculatedPlanName = "1 Day";
-        } else if (val === '7d') {
+        if (val === '7d') {
             calculatedTimestamp = now + (7 * 24 * 3600 * 1000);
-            defaultCost = 700;
+            cost = adminPrices.7d || 700;
             calculatedPlanName = "7 Days";
         } else if (val === '15d') {
             calculatedTimestamp = now + (15 * 24 * 3600 * 1000);
-            defaultCost = 1500;
+            cost = adminPrices.15d || 1500;
             calculatedPlanName = "15 Days";
         } else if (val === '30d') {
             calculatedTimestamp = now + (30 * 24 * 3600 * 1000);
-            defaultCost = 3000;
+            cost = adminPrices.30d || 3000;
             calculatedPlanName = "30 Days";
+        } else if (val === 'never') {
+            calculatedTimestamp = 0;
+            cost = adminPrices.never || 5000;
+            calculatedPlanName = "Never (Lifetime)";
         }
-        document.getElementById('key_cost').value = defaultCost;
+        document.getElementById('key_cost').value = cost;
     }
 
     function makeRandomKey() {
@@ -630,6 +610,12 @@
                 const d = new Date(currentServerTime);
                 document.getElementById('dispDateTime').innerText = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) + ", " + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             }
+
+            if (data.prices) {
+                adminPrices = data.prices;
+            }
+
+            onQuickExpiryChange();
 
             let safeBalance = parseFloat(data.balance || 0);
             document.getElementById('statBalance').innerText = `₹${safeBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
@@ -791,7 +777,7 @@
 
         const body = new URLSearchParams({ username: currentUser, key: trialKey, plan: 'trial' });
         try {
-            const res = await fetch(`${API_BASE}/reseller/generate_key`, { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: body });
+            const res = await fetch(`${API_BASE}/reseller/generate_key`, { method: 'POST', body });
             const data = await res.json();
             if (data.success) {
                 alert(`⚡ 10 MIN TRIAL KEY GENERATED!\nKey: ${trialKey}\nCost: ₹0 (Free)`);
@@ -814,7 +800,7 @@
         });
 
         try {
-            const res = await fetch(`${API_BASE}/reseller/generate_key`, { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: body });
+            const res = await fetch(`${API_BASE}/reseller/generate_key`, { method: 'POST', body });
             const data = await res.json();
             if (data.success) {
                 alert(`Key [${key}] generate ho gayi!\n₹${data.cost} deduct hua.`);
@@ -829,7 +815,7 @@
         if (!confirm(`Key [${key}] ka Device HWID reset karein?`)) return;
         const body = new URLSearchParams({ username: currentUser, key: key, reset_hwid: 'true' });
         try {
-            const res = await fetch(`${API_BASE}/reseller/edit_key`, { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: body });
+            const res = await fetch(`${API_BASE}/reseller/edit_key`, { method: 'POST', body });
             const data = await res.json();
             alert(data.msg || "HWID Reset Successful!");
             loadDashboard();
@@ -854,7 +840,7 @@
         const resetHwid = document.getElementById('editResetHwid').checked;
         const body = new URLSearchParams({ username: currentUser, key: editingKey, status: st, reset_hwid: resetHwid ? 'true' : 'false' });
         try {
-            const res = await fetch(`${API_BASE}/reseller/edit_key`, { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: body });
+            const res = await fetch(`${API_BASE}/reseller/edit_key`, { method: 'POST', body });
             const data = await res.json();
             alert(data.msg || "Updated");
             closeEditModal();
@@ -866,7 +852,7 @@
         if (!confirm(`Delete key [${key}]?`)) return;
         const body = new URLSearchParams({ username: currentUser, key: key });
         try {
-            const res = await fetch(`${API_BASE}/reseller/delete_key`, { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: body });
+            const res = await fetch(`${API_BASE}/reseller/delete_key`, { method: 'POST', body });
             const data = await res.json();
             alert(data.msg || "Deleted");
             loadDashboard();
@@ -879,7 +865,7 @@
         const tg = document.getElementById('contact_telegram').value.trim();
         const body = new URLSearchParams({ username: currentUser, whatsapp: wa, telegram: tg });
         try {
-            const res = await fetch(`${API_BASE}/reseller/update_contact`, { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: body });
+            const res = await fetch(`${API_BASE}/reseller/update_contact`, { method: 'POST', body });
             const data = await res.json();
             alert(data.msg || "Updated");
         } catch (err) { alert("Error"); }
