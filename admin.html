@@ -66,6 +66,7 @@
 
 <div class="container">
 
+    <!-- HEADER -->
     <div class="card header-card">
         <h3 style="color: #60A5FA; font-size: 16px;">👑 MASTER CONTROL</h3>
         <button class="refresh-btn" onclick="loadData()">🔄 REFRESH</button>
@@ -284,7 +285,7 @@
 
             html += `
                 <tr>
-                    <td><b>${uname}</b></td>
+                    <td><b>${uname}</b><br><span style="font-size:10px; color:var(--text-muted);">Pass: ${r.password || 'N/A'}</span></td>
                     <td>₹${r.balance || 0}</td>
                     <td><span class="badge-status ${badgeClass}">${finalStatus.toUpperCase()}</span></td>
                     <td>
