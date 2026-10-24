@@ -112,7 +112,6 @@ def reseller_data():
     if not isinstance(transactions, list):
         transactions = []
     
-    # Admin ke set kiye huye fixed prices bhi fetch honge
     prices = db_get("settings/prices") or {"7d": 700, "15d": 1500, "30d": 3000, "never": 5000}
 
     return jsonify({
@@ -132,8 +131,7 @@ def generate_key():
     username = request.form.get('username', '').strip().lower()
     key = request.form.get('key', '').strip().upper()
     expiry_timestamp = int(request.form.get('expiry_timestamp', 0))
-    plan = request.form.get('plan', '1 Day')
-    custom_cost = float(request.form.get('custom_cost', 0))
+    plan = request.form.get('plan', '30d')
     
     if not username or not key:
         return jsonify({"success": False, "msg": "Invalid details"})
@@ -143,15 +141,14 @@ def generate_key():
         return jsonify({"success": False, "msg": "Reseller not found"})
         
     reseller_info = resellers[username]
+    if reseller_info.get('status') == 'blocked':
+        return jsonify({"success": False, "msg": "Aapka account blocked hai!"})
+
     current_balance = float(reseller_info.get('balance', 0))
     
-    # Admin ke fixed price se cross-check karein taaki reseller bypass na kar sake
-    prices = db_get("settings/prices") or {}
-    plan_key_map = {"7 Days": "7d", "15 Days": "15d", "30 Days": "30d", "Never (Lifetime)": "never"}
-    if plan in plan_key_map and plan_key_map[plan] in prices:
-        custom_cost = float(prices[plan_key_map[plan]])
-
-    cost = 0 if plan == 'trial' else custom_cost
+    # Admin ke fixed prices fetch karke cost set karna
+    prices = db_get("settings/prices") or {"7d": 700, "15d": 1500, "30d": 3000, "never": 5000}
+    cost = float(prices.get(plan, 3000)) if plan != 'trial' else 0
     
     if current_balance < cost:
         return jsonify({"success": False, "msg": f"Aapka balance kam hai! Required: ₹{cost}, Available: ₹{current_balance}"})
