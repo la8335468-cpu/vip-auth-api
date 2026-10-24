@@ -32,12 +32,17 @@
         .stat-title { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
         .stat-val { font-size: 20px; font-weight: 800; color: #fff; margin-top: 4px; }
 
+        .kill-switch-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .btn-crash { background-color: var(--danger); color: #fff; border: none; padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+        .btn-activate { background-color: var(--success); color: #fff; border: none; padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+
         .input-group { margin-bottom: 10px; }
         .input-group label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 4px; font-weight: 600; }
         .input-group input, .input-group select { width: 100%; background-color: var(--input); border: 1px solid var(--border); color: #fff; padding: 11px; border-radius: 10px; font-size: 13px; outline: none; }
 
+        .btn-primary { width: 100%; background-color: #38BDF8; color: #0E1022; border: none; padding: 12px; border-radius: 10px; font-weight: 800; cursor: pointer; }
         .btn-create { width: 100%; background: linear-gradient(135deg, #4F6BFF, #3b56db); color: #fff; border: none; padding: 13px; border-radius: 10px; font-weight: 800; cursor: pointer; margin-top: 6px; }
-        .btn-del { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: 700; }
+        .btn-clear { background: transparent; border: 1px solid var(--border); color: var(--danger); padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer; width: 100%; }
 
         table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
         th, td { padding: 10px 6px; text-align: left; border-bottom: 1px solid var(--border); }
@@ -51,6 +56,7 @@
         .action-btns { display: flex; gap: 4px; }
         .btn-act { border: none; padding: 5px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; }
         .btn-edit { background: rgba(56, 189, 248, 0.2); color: #38BDF8; }
+        .btn-del { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
 
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); justify-content: center; align-items: center; padding: 16px; z-index: 200; }
         .modal-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; width: 100%; max-width: 340px; }
@@ -60,9 +66,36 @@
 
 <div class="container">
 
+    <!-- HEADER -->
     <div class="card header-card">
         <h3 style="color: #60A5FA; font-size: 16px;">👑 MASTER CONTROL</h3>
         <button class="refresh-btn" onclick="loadData()">🔄 REFRESH</button>
+    </div>
+
+    <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px; padding-left: 4px;" id="appStatusText">
+        APP STATUS: CHECKING...
+    </div>
+
+    <!-- APP REMOTE KILL-SWITCH -->
+    <div class="card">
+        <div style="font-size: 12px; font-weight: 700; margin-bottom: 10px; color: var(--text-muted);">🛡️ APP REMOTE KILL-SWITCH</div>
+        <div class="kill-switch-row">
+            <button class="btn-crash" onclick="setAppStatus('crash')">🛑 CRASH APP</button>
+            <button class="btn-activate" onclick="setAppStatus('active')">✅ ACTIVATE</button>
+        </div>
+    </div>
+
+    <!-- BROADCAST LIVE ALERT -->
+    <div class="card">
+        <div style="font-size: 12px; font-weight: 700; margin-bottom: 10px; color: var(--text-muted);">📢 BROADCAST LIVE ALERT</div>
+        <form onsubmit="sendAlert(event)">
+            <div class="input-group"><input type="text" id="alertTitle" placeholder="Alert Title (e.g. Notice)" required></div>
+            <div class="input-group"><input type="text" id="alertMsg" placeholder="Alert Message (e.g. Maintenance)" required></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button type="submit" class="btn-primary">SEND ALERT</button>
+                <button type="button" class="btn-clear" onclick="clearAlert()">CLEAR ALERT</button>
+            </div>
+        </form>
     </div>
 
     <!-- FIX PLAN PRICES CARD -->
@@ -81,13 +114,25 @@
 
     <!-- STATS COUNTERS -->
     <div class="stats-grid">
-        <div class="stat-box active-filter" id="filterAll" onclick="setFilter('all')"><div class="stat-title">Total</div><div class="stat-val" id="statTotal" style="color: #60A5FA;">0</div></div>
-        <div class="stat-box" id="filterActive" onclick="setFilter('active')"><div class="stat-title">Active</div><div class="stat-val" id="statActive" style="color: var(--success);">0</div></div>
-        <div class="stat-box" id="filterBlocked" onclick="setFilter('blocked')"><div class="stat-title">Blocked</div><div class="stat-val" id="statBlocked" style="color: #F59E0B;">0</div></div>
-        <div class="stat-box" id="filterExpired" onclick="setFilter('expired')"><div class="stat-title">Expired</div><div class="stat-val" id="statExpired" style="color: var(--danger);">0</div></div>
+        <div class="stat-box active-filter" id="filterAll" onclick="setFilter('all')">
+            <div class="stat-title">Total Resellers</div>
+            <div class="stat-val" id="statTotal" style="color: #60A5FA;">0</div>
+        </div>
+        <div class="stat-box" id="filterActive" onclick="setFilter('active')">
+            <div class="stat-title">Active</div>
+            <div class="stat-val" id="statActive" style="color: var(--success);">0</div>
+        </div>
+        <div class="stat-box" id="filterBlocked" onclick="setFilter('blocked')">
+            <div class="stat-title">Blocked</div>
+            <div class="stat-val" id="statBlocked" style="color: #F59E0B;">0</div>
+        </div>
+        <div class="stat-box" id="filterExpired" onclick="setFilter('expired')">
+            <div class="stat-title">Expired</div>
+            <div class="stat-val" id="statExpired" style="color: var(--danger);">0</div>
+        </div>
     </div>
 
-    <!-- CREATE RESELLER -->
+    <!-- CREATE RESELLER ACCOUNT -->
     <div class="card">
         <div style="font-size: 12px; font-weight: 700; margin-bottom: 10px; color: var(--text-muted);">👤 CREATE RESELLER ACCOUNT</div>
         <form onsubmit="createReseller(event)">
@@ -100,23 +145,34 @@
 
     <!-- REGISTERED RESELLERS -->
     <div class="card">
-        <div style="font-size: 12px; font-weight: 700; margin-bottom: 10px; color: var(--text-muted);" id="tableTitle">📋 REGISTERED RESELLERS</div>
+        <div style="font-size: 12px; font-weight: 700; margin-bottom: 10px; color: var(--text-muted);" id="tableTitle">📋 REGISTERED RESELLERS (ALL)</div>
         <table>
             <thead><tr><th>User</th><th>Bal</th><th>Status</th><th>Action</th></tr></thead>
-            <tbody id="resellersTable"><tr><td colspan="4" style="text-align:center;">Loading...</td></tr></tbody>
+            <tbody id="resellersTable"><tr><td colspan="4" style="text-align:center; color: var(--text-muted);">Loading...</td></tr></tbody>
         </table>
     </div>
 
 </div>
 
-<!-- EDIT MODAL -->
+<!-- EDIT & RECHARGE MODAL -->
 <div class="modal" id="editModal">
     <div class="modal-card">
         <h3 style="color: #60A5FA; margin-bottom: 12px; font-size: 15px;">Edit & Recharge: <span id="editUserTitle"></span></h3>
         <form onsubmit="submitEditReseller(event)">
-            <div class="input-group"><label>Current Balance: <span id="currentBalText" style="color:#34D399;">₹0</span></label></div>
-            <div class="input-group"><label>Add Recharge Amount (₹)</label><input type="number" id="rechargeAmt" value="0" min="0"></div>
-            <div class="input-group"><label>Status</label><select id="editStatus"><option value="active">Active</option><option value="blocked">Blocked</option></select></div>
+            <div class="input-group">
+                <label>Current Balance: <span id="currentBalText" style="color:#34D399;">₹0</span></label>
+            </div>
+            <div class="input-group">
+                <label>Add Recharge Amount (₹)</label>
+                <input type="number" id="rechargeAmt" value="0" min="0">
+            </div>
+            <div class="input-group">
+                <label>Status</label>
+                <select id="editStatus">
+                    <option value="active">Active</option>
+                    <option value="blocked">Blocked</option>
+                </select>
+            </div>
             <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px;">
                 <button type="button" class="btn-act" onclick="closeEditModal()" style="background:transparent; color:var(--text-muted);">Cancel</button>
                 <button type="submit" class="btn-act btn-edit">Save Changes</button>
@@ -132,7 +188,18 @@
     let serverTime = Date.now();
     let editingUsername = '';
 
-    window.onload = function() { loadData(); };
+    window.onload = function() {
+        loadData();
+    };
+
+    function setFilter(filterType) {
+        currentFilter = filterType;
+        ['all', 'active', 'blocked', 'expired'].forEach(f => {
+            document.getElementById('filter' + f.charAt(0).toUpperCase() + f.slice(1)).classList.remove('active-filter');
+        });
+        document.getElementById('filter' + filterType.charAt(0).toUpperCase() + filterType.slice(1)).classList.add('active-filter');
+        renderResellersList();
+    }
 
     async function loadData() {
         try {
@@ -140,17 +207,21 @@
             const data = await res.json();
             if (!data.success) return;
 
+            let status = data.control?.status || 'active';
+            document.getElementById('appStatusText').innerText = `APP STATUS: ${status.toUpperCase()}`;
             serverTime = data.server_time || Date.now();
             cachedResellers = data.resellers || {};
 
             let p = data.prices || {};
-            document.getElementById('price_7d').value = p.7d || 700;
-            document.getElementById('price_15d').value = p.15d || 1500;
-            document.getElementById('price_30d').value = p.30d || 3000;
-            document.getElementById('price_never').value = p.never || 5000;
+            document.getElementById('price_7d').value = p['7d'] || 700;
+            document.getElementById('price_15d').value = p['15d'] || 1500;
+            document.getElementById('price_30d').value = p['30d'] || 3000;
+            document.getElementById('price_never').value = p['never'] || 5000;
 
             processStatsAndRender();
-        } catch (err) { console.log(err); }
+        } catch (err) {
+            console.log("Error loading data:", err);
+        }
     }
 
     async function savePrices(e) {
@@ -166,58 +237,67 @@
         alert(data.msg);
     }
 
-    function setFilter(type) {
-        currentFilter = type;
-        ['all', 'active', 'blocked', 'expired'].forEach(f => {
-            document.getElementById('filter' + f.charAt(0).toUpperCase() + f.slice(1)).classList.remove('active-filter');
-        });
-        document.getElementById('filter' + type.charAt(0).toUpperCase() + type.slice(1)).classList.add('active-filter');
-        renderResellersList();
-    }
-
     function processStatsAndRender() {
         let total = 0, active = 0, blocked = 0, expired = 0;
+
         for (let uname in cachedResellers) {
             let r = cachedResellers[uname];
             total++;
             let exp = r.expiry_timestamp || 0;
             let isExp = exp > 0 && serverTime > exp;
+            let manualStatus = r.status || 'active';
+
             if (isExp) expired++;
-            else if (r.status === 'blocked') blocked++;
+            else if (manualStatus === 'blocked') blocked++;
             else active++;
         }
+
         document.getElementById('statTotal').innerText = total;
         document.getElementById('statActive').innerText = active;
         document.getElementById('statBlocked').innerText = blocked;
         document.getElementById('statExpired').innerText = expired;
+
         renderResellersList();
     }
 
     function renderResellersList() {
         let tbody = document.getElementById('resellersTable');
         let html = '';
+        document.getElementById('tableTitle').innerText = `📋 REGISTERED RESELLERS (${currentFilter.toUpperCase()})`;
+
         for (let uname in cachedResellers) {
             let r = cachedResellers[uname];
             let exp = r.expiry_timestamp || 0;
             let isExp = exp > 0 && serverTime > exp;
-            let finalStatus = isExp ? 'expired' : (r.status === 'blocked' ? 'blocked' : 'active');
+            let manualStatus = r.status || 'active';
+            
+            let finalStatus = 'active';
+            if (isExp) finalStatus = 'expired';
+            else if (manualStatus === 'blocked') finalStatus = 'blocked';
 
-            if (currentFilter !== 'all' && finalStatus !== currentFilter) continue;
-            let badgeClass = finalStatus === 'active' ? 'st-active' : (finalStatus === 'blocked' ? 'st-blocked' : 'st-expired');
+            if (currentFilter === 'active' && finalStatus !== 'active') continue;
+            if (currentFilter === 'blocked' && finalStatus !== 'blocked') continue;
+            if (currentFilter === 'expired' && finalStatus !== 'expired') continue;
 
-            html += `<tr>
-                <td><b>${uname}</b></td>
-                <td>₹${r.balance || 0}</td>
-                <td><span class="badge-status ${badgeClass}">${finalStatus.toUpperCase()}</span></td>
-                <td>
-                    <div class="action-btns">
-                        <button class="btn-act btn-edit" onclick="openEditModal('${uname}')">✏️</button>
-                        <button class="btn-act btn-del" onclick="deleteReseller('${uname}')">🗑️</button>
-                    </div>
-                </td>
-            </tr>`;
+            let badgeClass = 'st-active';
+            if (finalStatus === 'blocked') badgeClass = 'st-blocked';
+            if (finalStatus === 'expired') badgeClass = 'st-expired';
+
+            html += `
+                <tr>
+                    <td><b>${uname}</b></td>
+                    <td>₹${r.balance || 0}</td>
+                    <td><span class="badge-status ${badgeClass}">${finalStatus.toUpperCase()}</span></td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="btn-act btn-edit" onclick="openEditModal('${uname}')">✏️</button>
+                            <button class="btn-act btn-del" onclick="deleteReseller('${uname}')">🗑️</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
         }
-        tbody.innerHTML = html || '<tr><td colspan="4" style="text-align:center;">No resellers found</td></tr>';
+        tbody.innerHTML = html || `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">No resellers found in ${currentFilter}</td></tr>`;
     }
 
     function openEditModal(uname) {
@@ -230,18 +310,48 @@
         document.getElementById('editModal').style.display = 'flex';
     }
 
-    function closeEditModal() { document.getElementById('editModal').style.display = 'none'; }
+    function closeEditModal() {
+        document.getElementById('editModal').style.display = 'none';
+        editingUsername = '';
+    }
 
     async function submitEditReseller(e) {
         e.preventDefault();
         let recharge_amount = document.getElementById('rechargeAmt').value;
         let status = document.getElementById('editStatus').value;
+
         const body = new URLSearchParams({ username: editingUsername, recharge_amount, status });
         const res = await fetch(`${API_BASE}/admin/edit_reseller`, { method: 'POST', body });
         const data = await res.json();
         alert(data.msg);
         closeEditModal();
         loadData();
+    }
+
+    async function setAppStatus(status) {
+        const body = new URLSearchParams({ status });
+        const res = await fetch(`${API_BASE}/admin/set_status`, { method: 'POST', body });
+        const data = await res.json();
+        alert(data.msg);
+        loadData();
+    }
+
+    async function sendAlert(e) {
+        e.preventDefault();
+        const title = document.getElementById('alertTitle').value.trim();
+        const msg = document.getElementById('alertMsg').value.trim();
+        const body = new URLSearchParams({ title, msg });
+        const res = await fetch(`${API_BASE}/admin/send_alert`, { method: 'POST', body });
+        const data = await res.json();
+        alert(data.msg);
+    }
+
+    async function clearAlert() {
+        const body = new URLSearchParams({ title: '', msg: '' });
+        await fetch(`${API_BASE}/admin/send_alert`, { method: 'POST', body });
+        document.getElementById('alertTitle').value = '';
+        document.getElementById('alertMsg').value = '';
+        alert("Alert Cleared!");
     }
 
     async function createReseller(e) {
@@ -251,7 +361,7 @@
         const balance = document.getElementById('resBal').value;
         const expiry_timestamp = Date.now() + (30 * 24 * 3600 * 1000);
 
-        const body = new URLSearchParams({ username, password, balance, expiry_timestamp });
+        const body = new URLSearchParams({ username, password, balance, expiry_timestamp: expiry_timestamp.toString() });
         const res = await fetch(`${API_BASE}/admin/add_reseller`, { method: 'POST', body });
         const data = await res.json();
         alert(data.msg);
