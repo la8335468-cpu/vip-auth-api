@@ -484,7 +484,7 @@
     let currentUser = localStorage.getItem('reseller_user') || '';
     let currentServerTime = 0;
     let calculatedTimestamp = 0;
-    let calculatedPlanName = "30 Days";
+    let calculatedPlanName = "30d";
     let editingKey = '';
     
     let allKeysData = [];
@@ -569,20 +569,20 @@
 
         if (val === '7d') {
             calculatedTimestamp = now + (7 * 24 * 3600 * 1000);
-            cost = adminPrices.7d || 700;
-            calculatedPlanName = "7 Days";
+            cost = adminPrices['7d'] || 700;
+            calculatedPlanName = "7d";
         } else if (val === '15d') {
             calculatedTimestamp = now + (15 * 24 * 3600 * 1000);
-            cost = adminPrices.15d || 1500;
-            calculatedPlanName = "15 Days";
+            cost = adminPrices['15d'] || 1500;
+            calculatedPlanName = "15d";
         } else if (val === '30d') {
             calculatedTimestamp = now + (30 * 24 * 3600 * 1000);
-            cost = adminPrices.30d || 3000;
-            calculatedPlanName = "30 Days";
+            cost = adminPrices['30d'] || 3000;
+            calculatedPlanName = "30d";
         } else if (val === 'never') {
             calculatedTimestamp = 0;
-            cost = adminPrices.never || 5000;
-            calculatedPlanName = "Never (Lifetime)";
+            cost = adminPrices['never'] || 5000;
+            calculatedPlanName = "never";
         }
         document.getElementById('key_cost').value = cost;
     }
@@ -789,14 +789,12 @@
     async function generateKey(e) {
         e.preventDefault();
         const key = document.getElementById('new_key').value.trim().toUpperCase();
-        const customPrice = document.getElementById('key_cost').value;
         
         const body = new URLSearchParams({
             username: currentUser,
             key: key,
             expiry_timestamp: calculatedTimestamp.toString(),
-            plan: calculatedPlanName,
-            custom_cost: customPrice
+            plan: calculatedPlanName
         });
 
         try {
