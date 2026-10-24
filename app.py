@@ -68,15 +68,12 @@ def reseller_login():
     resellers = db_get("resellers") or {}
     if username in resellers and isinstance(resellers[username], dict):
         r_info = resellers[username]
-        
         if r_info.get('password') == password:
             if r_info.get('status') == 'blocked':
                 return jsonify({"success": False, "msg": "Aapka account Admin dwara Block kar diya gaya hai!"})
-                
             expiry_timestamp = r_info.get('expiry_timestamp', 0)
             if expiry_timestamp > 0 and int(time.time() * 1000) > expiry_timestamp:
                 return jsonify({"success": False, "msg": "Aapke account ki validity khatam ho chuki hai!"})
-                
             return jsonify({"success": True, "msg": "Login Successful"})
             
     return jsonify({"success": False, "msg": "Invalid Username or Password!"})
@@ -92,14 +89,12 @@ def reseller_data():
         return jsonify({"success": False, "msg": "Reseller not found"})
         
     reseller_info = resellers[username]
-    
-    # Live Blocked & Expiry check for active sessions
     if reseller_info.get('status') == 'blocked':
-        return jsonify({"success": False, "msg": "Aapka account Admin dwara Block kar diya gaya hai!"})
+        return jsonify({"success": False, "msg": "Aapka account blocked hai!"})
         
     expiry_timestamp = reseller_info.get('expiry_timestamp', 0)
     if expiry_timestamp > 0 and int(time.time() * 1000) > expiry_timestamp:
-        return jsonify({"success": False, "msg": "Aapke account ki validity khatam ho chuki hai!"})
+        return jsonify({"success": False, "msg": "Aapki validity khatam ho chuki hai!"})
 
     balance = reseller_info.get('balance', 0)
     whatsapp = reseller_info.get('whatsapp', '')
@@ -117,6 +112,9 @@ def reseller_data():
     if not isinstance(transactions, list):
         transactions = []
     
+    # Admin ke set kiye huye fixed prices bhi fetch honge
+    prices = db_get("settings/prices") or {"7d": 700, "15d": 1500, "30d": 3000, "never": 5000}
+
     return jsonify({
         "success": True,
         "balance": balance,
@@ -125,6 +123,7 @@ def reseller_data():
         "telegram": telegram,
         "keys": my_keys,
         "transactions": transactions,
+        "prices": prices,
         "server_time": int(time.time() * 1000)
     })
 
@@ -144,10 +143,14 @@ def generate_key():
         return jsonify({"success": False, "msg": "Reseller not found"})
         
     reseller_info = resellers[username]
-    if reseller_info.get('status') == 'blocked':
-        return jsonify({"success": False, "msg": "Aapka account blocked hai!"})
-
     current_balance = float(reseller_info.get('balance', 0))
+    
+    # Admin ke fixed price se cross-check karein taaki reseller bypass na kar sake
+    prices = db_get("settings/prices") or {}
+    plan_key_map = {"7 Days": "7d", "15 Days": "15d", "30 Days": "30d", "Never (Lifetime)": "never"}
+    if plan in plan_key_map and plan_key_map[plan] in prices:
+        custom_cost = float(prices[plan_key_map[plan]])
+
     cost = 0 if plan == 'trial' else custom_cost
     
     if current_balance < cost:
@@ -236,12 +239,25 @@ def update_contact():
 def admin_data():
     resellers = db_get("resellers") or {}
     app_control = db_get("control") or {"status": "active", "alert_title": "", "alert_msg": ""}
+    prices = db_get("settings/prices") or {"7d": 700, "15d": 1500, "30d": 3000, "never": 5000}
     return jsonify({
         "success": True,
         "resellers": resellers,
         "control": app_control,
+        "prices": prices,
         "server_time": int(time.time() * 1000)
     })
+
+@app.route('/admin/set_prices', methods=['POST'])
+def admin_set_prices():
+    p_7d = float(request.form.get('p_7d', 700))
+    p_15d = float(request.form.get('p_15d', 1500))
+    p_30d = float(request.form.get('p_30d', 3000))
+    p_never = float(request.form.get('p_never', 5000))
+    
+    prices = {"7d": p_7d, "15d": p_15d, "30d": p_30d, "never": p_never}
+    db_put("settings/prices", prices)
+    return jsonify({"success": True, "msg": "Plan Prices Updated Successfully!"})
 
 @app.route('/admin/add_reseller', methods=['POST'])
 def admin_add_reseller():
