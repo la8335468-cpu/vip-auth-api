@@ -59,7 +59,7 @@
         .btn-del { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
 
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); justify-content: center; align-items: center; padding: 16px; z-index: 200; }
-        .modal-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; width: 100%; max-width: 340px; }
+        .modal-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; width: 100%; max-width: 360px; max-height: 90vh; overflow-y: auto; }
     </style>
 </head>
 <body>
@@ -98,20 +98,6 @@
         </form>
     </div>
 
-    <!-- FIX PLAN PRICES CARD -->
-    <div class="card">
-        <div style="font-size: 12px; font-weight: 700; margin-bottom: 10px; color: #38BDF8;">💰 FIX KEY PRICES FOR RESELLERS</div>
-        <form onsubmit="savePrices(event)">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div class="input-group"><label>7 Days Price (₹)</label><input type="number" id="price_7d" required></div>
-                <div class="input-group"><label>15 Days Price (₹)</label><input type="number" id="price_15d" required></div>
-                <div class="input-group"><label>30 Days Price (₹)</label><input type="number" id="price_30d" required></div>
-                <div class="input-group"><label>Lifetime Price (₹)</label><input type="number" id="price_never" required></div>
-            </div>
-            <button type="submit" class="btn-create" style="background: #10B981;">SAVE FIXED PRICES</button>
-        </form>
-    </div>
-
     <!-- STATS COUNTERS -->
     <div class="stats-grid">
         <div class="stat-box active-filter" id="filterAll" onclick="setFilter('all')">
@@ -139,6 +125,14 @@
             <div class="input-group"><input type="text" id="resUser" placeholder="Reseller User ID" required></div>
             <div class="input-group"><input type="text" id="resPass" placeholder="Password" required></div>
             <div class="input-group"><input type="number" id="resBal" value="500" placeholder="Initial Balance" required></div>
+            
+            <div style="font-size: 11px; color: #38BDF8; font-weight: 700; margin: 10px 0 6px 0;">Key Prices Fix (Is Reseller Keliye):</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
+                <div class="input-group"><label>7 Days</label><input type="number" id="new_p7d" value="700" required></div>
+                <div class="input-group"><label>15 Days</label><input type="number" id="new_p15d" value="1500" required></div>
+                <div class="input-group"><label>30 Days</label><input type="number" id="new_p30d" value="3000" required></div>
+            </div>
+
             <button type="submit" class="btn-create">CREATE RESELLER ID</button>
         </form>
     </div>
@@ -147,7 +141,7 @@
     <div class="card">
         <div style="font-size: 12px; font-weight: 700; margin-bottom: 10px; color: var(--text-muted);" id="tableTitle">📋 REGISTERED RESELLERS (ALL)</div>
         <table>
-            <thead><tr><th>User</th><th>Bal</th><th>Status</th><th>Action</th></tr></thead>
+            <thead><tr><th>User / Pass</th><th>Bal</th><th>Status</th><th>Action</th></tr></thead>
             <tbody id="resellersTable"><tr><td colspan="4" style="text-align:center; color: var(--text-muted);">Loading...</td></tr></tbody>
         </table>
     </div>
@@ -173,6 +167,14 @@
                     <option value="blocked">Blocked</option>
                 </select>
             </div>
+
+            <div style="font-size: 11px; color: #38BDF8; font-weight: 700; margin: 10px 0 6px 0;">Fix Key Prices (7d / 15d / 30d):</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
+                <div class="input-group"><label>7 Days</label><input type="number" id="edit_p7d" required></div>
+                <div class="input-group"><label>15 Days</label><input type="number" id="edit_p15d" required></div>
+                <div class="input-group"><label>30 Days</label><input type="number" id="edit_p30d" required></div>
+            </div>
+
             <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px;">
                 <button type="button" class="btn-act" onclick="closeEditModal()" style="background:transparent; color:var(--text-muted);">Cancel</button>
                 <button type="submit" class="btn-act btn-edit">Save Changes</button>
@@ -212,29 +214,10 @@
             serverTime = data.server_time || Date.now();
             cachedResellers = data.resellers || {};
 
-            let p = data.prices || {};
-            document.getElementById('price_7d').value = p['7d'] || 700;
-            document.getElementById('price_15d').value = p['15d'] || 1500;
-            document.getElementById('price_30d').value = p['30d'] || 3000;
-            document.getElementById('price_never').value = p['never'] || 5000;
-
             processStatsAndRender();
         } catch (err) {
             console.log("Error loading data:", err);
         }
-    }
-
-    async function savePrices(e) {
-        e.preventDefault();
-        const p_7d = document.getElementById('price_7d').value;
-        const p_15d = document.getElementById('price_15d').value;
-        const p_30d = document.getElementById('price_30d').value;
-        const p_never = document.getElementById('price_never').value;
-
-        const body = new URLSearchParams({ p_7d, p_15d, p_30d, p_never });
-        const res = await fetch(`${API_BASE}/admin/set_prices`, { method: 'POST', body });
-        const data = await res.json();
-        alert(data.msg);
     }
 
     function processStatsAndRender() {
@@ -283,9 +266,13 @@
             if (finalStatus === 'blocked') badgeClass = 'st-blocked';
             if (finalStatus === 'expired') badgeClass = 'st-expired';
 
+            let p7 = r.prices?.['7d'] || 700;
+            let p15 = r.prices?.['15d'] || 1500;
+            let p30 = r.prices?.['30d'] || 3000;
+
             html += `
                 <tr>
-                    <td><b>${uname}</b><br><span style="font-size:10px; color:var(--text-muted);">Pass: ${r.password || 'N/A'}</span></td>
+                    <td><b>${uname}</b><br><span style="font-size:10px; color:var(--text-muted);">Pass: ${r.password || 'N/A'}</span><br><span style="font-size:9px; color:#38BDF8;">Prices: 7d:₹${p7} | 15d:₹${p15} | 30d:₹${p30}</span></td>
                     <td>₹${r.balance || 0}</td>
                     <td><span class="badge-status ${badgeClass}">${finalStatus.toUpperCase()}</span></td>
                     <td>
@@ -307,6 +294,11 @@
         document.getElementById('currentBalText').innerText = `₹${r.balance || 0}`;
         document.getElementById('rechargeAmt').value = 0;
         document.getElementById('editStatus').value = r.status || 'active';
+
+        document.getElementById('edit_p7d').value = r.prices?.['7d'] || 700;
+        document.getElementById('edit_p15d').value = r.prices?.['15d'] || 1500;
+        document.getElementById('edit_p30d').value = r.prices?.['30d'] || 3000;
+
         document.getElementById('editModal').style.display = 'flex';
     }
 
@@ -319,8 +311,11 @@
         e.preventDefault();
         let recharge_amount = document.getElementById('rechargeAmt').value;
         let status = document.getElementById('editStatus').value;
+        let p_7d = document.getElementById('edit_p7d').value;
+        let p_15d = document.getElementById('edit_p15d').value;
+        let p_30d = document.getElementById('edit_p30d').value;
 
-        const body = new URLSearchParams({ username: editingUsername, recharge_amount, status });
+        const body = new URLSearchParams({ username: editingUsername, recharge_amount, status, p_7d, p_15d, p_30d });
         const res = await fetch(`${API_BASE}/admin/edit_reseller`, { method: 'POST', body });
         const data = await res.json();
         alert(data.msg);
@@ -359,9 +354,12 @@
         const username = document.getElementById('resUser').value.trim().toLowerCase();
         const password = document.getElementById('resPass').value.trim();
         const balance = document.getElementById('resBal').value;
+        const p_7d = document.getElementById('new_p7d').value;
+        const p_15d = document.getElementById('new_p15d').value;
+        const p_30d = document.getElementById('new_p30d').value;
         const expiry_timestamp = Date.now() + (30 * 24 * 3600 * 1000);
 
-        const body = new URLSearchParams({ username, password, balance, expiry_timestamp: expiry_timestamp.toString() });
+        const body = new URLSearchParams({ username, password, balance, p_7d, p_15d, p_30d, expiry_timestamp: expiry_timestamp.toString() });
         const res = await fetch(`${API_BASE}/admin/add_reseller`, { method: 'POST', body });
         const data = await res.json();
         alert(data.msg);
